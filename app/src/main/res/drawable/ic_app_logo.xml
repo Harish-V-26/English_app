@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background circle -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M54,54m-48,0a48,48 0,1 1,96 0a48,48 0,1 1,-96 0" />
+    
+    <!-- Book -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,35 L70,35 L70,75 L30,75 Z" />
+    
+    <!-- Book spine -->
+    <path
+        android:fillColor="#E8F5E8"
+        android:pathData="M30,35 L35,35 L35,75 L30,75 Z" />
+    
+    <!-- Book pages -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M35,38 L65,38 L65,72 L35,72 Z" />
+    
+    <!-- Text lines on book -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M38,42 L62,42 L62,44 L38,44 Z" />
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M38,48 L58,48 L58,50 L38,50 Z" />
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M38,54 L60,54 L60,56 L38,56 Z" />
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M38,60 L55,60 L55,62 L38,62 Z" />
+    
+    <!-- Graduation cap -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M25,25 L45,35 L65,25 L45,15 Z" />
+    
+    <!-- Cap tassel -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M45,25 L45,30 L42,28 L45,30 L48,28 Z" />
+    
+    <!-- ABC letters -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M75,20 L80,20 L80,25 L75,25 Z" />
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M75,20 L80,20 L77.5,25 L75,20 Z" />
+    
+    <path
+        android:fillColor="#9C27B0"
+        android:pathData="M75,30 L80,30 L80,35 L75,35 Z" />
+    <path
+        android:fillColor="#9C27B0"
+        android:pathData="M75,30 L80,30 L77.5,35 L75,30 Z" />
+    
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M75,40 L80,40 L80,45 L75,45 Z" />
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M75,40 L80,40 L77.5,45 L75,40 Z" />
+</vector> 

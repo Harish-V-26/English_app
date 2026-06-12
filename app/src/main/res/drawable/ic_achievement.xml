@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Trophy base -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M6,16 L18,16 L18,20 L6,20 Z" />
+    
+    <!-- Trophy body -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M8,8 L16,8 L16,16 L8,16 Z" />
+    
+    <!-- Trophy handles -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M6,10 L8,10 L8,14 L6,14 Z" />
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M16,10 L18,10 L18,14 L16,14 Z" />
+    
+    <!-- Trophy top -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M10,4 L14,4 L14,8 L10,8 Z" />
+    
+    <!-- Star -->
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M12,2 L13,4 L15,4 L13.5,5.5 L14,7.5 L12,6.5 L10,7.5 L10.5,5.5 L9,4 L11,4 Z" />
+    
+    <!-- Shine effect -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,10 L11,10 L11,12 L9,12 Z" />
+</vector> 

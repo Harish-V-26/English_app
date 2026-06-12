@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Grid background -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M3,3h18v18h-18z" />
+    
+    <!-- Grid lines -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M3,9h18v1h-18z" />
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M3,15h18v1h-18z" />
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M9,3v18h1v-18z" />
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M15,3v18h1v-18z" />
+    
+    <!-- Grid cells with different colors -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M3,3h6v6h-6z" />
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M9,3h6v6h-6z" />
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M15,3h6v6h-6z" />
+    <path
+        android:fillColor="#9C27B0"
+        android:pathData="M3,9h6v6h-6z" />
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M9,9h6v6h-6z" />
+    <path
+        android:fillColor="#00BCD4"
+        android:pathData="M15,9h6v6h-6z" />
+    <path
+        android:fillColor="#795548"
+        android:pathData="M3,15h6v6h-6z" />
+    <path
+        android:fillColor="#607D8B"
+        android:pathData="M9,15h6v6h-6z" />
+    <path
+        android:fillColor="#E91E63"
+        android:pathData="M15,15h6v6h-6z" />
+</vector> 

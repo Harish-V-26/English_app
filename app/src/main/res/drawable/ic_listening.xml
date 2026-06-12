@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Headphones band -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M4,8 L20,8 L20,10 L4,10 Z" />
+    
+    <!-- Left ear cup -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M2,10 L8,10 L8,16 L2,16 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M3,11 L7,11 L7,15 L3,15 Z" />
+    
+    <!-- Right ear cup -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M16,10 L22,10 L22,16 L16,16 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17,11 L21,11 L21,15 L17,15 Z" />
+    
+    <!-- Sound waves -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M0,12 L2,12 L2,16 L0,16 Z" />
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M22,12 L24,12 L24,16 L22,16 Z" />
+    
+    <!-- Music notes -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M10,4 L11,4 L11,8 L10,8 Z" />
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M10,8 L12,8 L12,9 L10,9 Z" />
+    
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M13,6 L14,6 L14,10 L13,10 Z" />
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M13,10 L15,10 L15,11 L13,11 Z" />
+</vector> 
