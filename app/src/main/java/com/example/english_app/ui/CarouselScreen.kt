@@ -40,7 +40,6 @@ import androidx.compose.foundation.Image
 import coil.compose.AsyncImage
 import android.speech.tts.TextToSpeech
 import android.content.Context
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
@@ -72,23 +71,27 @@ fun CarouselScreen(
     var isFavorite by remember { mutableStateOf(false) }
     var difficultyRating by remember { mutableIntStateOf(0) }
     var showPracticeMode by remember { mutableStateOf(false) }
+    var showDetails by remember { mutableStateOf(false) }
     
     val words = category.words
     val currentWord = words[currentWordIndex]
     
     // Text-to-Speech setup
     val context = LocalContext.current
+    var isTtsInitialized by remember { mutableStateOf(false) }
     val tts = remember { 
         TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                // Set language after initialization
+                isTtsInitialized = true
             }
         }
     }
     
     // Set language after TTS is initialized
-    LaunchedEffect(tts) {
-        tts.language = Locale.US
+    LaunchedEffect(isTtsInitialized) {
+        if (isTtsInitialized) {
+            tts.language = Locale.US
+        }
     }
     
     // Cleanup TTS on dispose
@@ -127,58 +130,58 @@ fun CarouselScreen(
         },
         floatingActionButton = {
             var showNavigationOptions by remember { mutableStateOf(false) }
-            
-            Box {
-                // Navigation options
+
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Navigation options appear above the main FAB
                 if (showNavigationOptions) {
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Previous button
-                        if (currentWordIndex > 0) {
-                            FloatingActionButton(
-                                onClick = {
-                                    currentWordIndex--
-                                    isFavorite = false
-                                    difficultyRating = 0
-                                    showNavigationOptions = false
-                                },
-                                containerColor = VibrantGreen,
-                                contentColor = Color.White,
-                                modifier = Modifier.size(56.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
-                                    contentDescription = "Previous Word",
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                    // Next button
+                    if (currentWordIndex < words.size - 1) {
+                        FloatingActionButton(
+                            onClick = {
+                                currentWordIndex++
+                                isFavorite = false
+                                difficultyRating = 0
+                                showDetails = false
+                                showNavigationOptions = false
+                            },
+                            containerColor = VibrantGreen,
+                            contentColor = Color.White,
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                contentDescription = "Next Word",
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
-                        
-                        // Next button
-                        if (currentWordIndex < words.size - 1) {
-                            FloatingActionButton(
-                                onClick = {
-                                    currentWordIndex++
-                                    isFavorite = false
-                                    difficultyRating = 0
-                                    showNavigationOptions = false
-                                },
-                                containerColor = VibrantGreen,
-                                contentColor = Color.White,
-                                modifier = Modifier.size(56.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                                    contentDescription = "Next Word",
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                    }
+
+                    // Previous button
+                    if (currentWordIndex > 0) {
+                        FloatingActionButton(
+                            onClick = {
+                                currentWordIndex--
+                                isFavorite = false
+                                difficultyRating = 0
+                                showDetails = false
+                                showNavigationOptions = false
+                            },
+                            containerColor = VibrantGreen,
+                            contentColor = Color.White,
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
+                                contentDescription = "Previous Word",
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                 }
-                
+
                 // Main FAB
                 FloatingActionButton(
                     onClick = { showNavigationOptions = !showNavigationOptions },
@@ -209,6 +212,7 @@ fun CarouselScreen(
                                     currentWordIndex--
                                     isFavorite = false
                                     difficultyRating = 0
+                                    showDetails = false
                                 }
                             } else {
                                 // Swipe left - go to next
@@ -216,6 +220,7 @@ fun CarouselScreen(
                                     currentWordIndex++
                                     isFavorite = false
                                     difficultyRating = 0
+                                    showDetails = false
                                 }
                             }
                         }
@@ -258,12 +263,14 @@ fun CarouselScreen(
                     onFavoriteToggle = { isFavorite = !isFavorite },
                     difficultyRating = difficultyRating,
                     onDifficultyChange = { difficultyRating = it },
-                    onSpeakWord = { 
+                    onSpeakWord = {
                         tts.speak(currentWord.word, TextToSpeech.QUEUE_FLUSH, null, null)
                     },
                     categoryId = category.id,
                     useRandomDirections = animationSettings.useRandomDirections,
-                    animationStyle = animationSettings.animationStyle
+                    animationStyle = animationSettings.animationStyle,
+                    showDetails = showDetails,
+                    onShowDetailsChange = { showDetails = it }
                 )
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -316,6 +323,7 @@ fun CarouselScreen(
                         currentWordIndex--
                         isFavorite = false
                         difficultyRating = 0
+                        showDetails = false
                     }
                 },
                 onNext = {
@@ -323,6 +331,7 @@ fun CarouselScreen(
                         currentWordIndex++
                         isFavorite = false
                         difficultyRating = 0
+                        showDetails = false
                     }
                 }
             )
@@ -380,9 +389,10 @@ fun WordCard(
     onSpeakWord: () -> Unit,
     categoryId: String,
     useRandomDirections: Boolean,
-    animationStyle: Int
+    animationStyle: Int,
+    showDetails: Boolean,
+    onShowDetailsChange: (Boolean) -> Unit
 ) {
-    var showDetails by remember { mutableStateOf(false) }
     var directionIndex by remember { mutableIntStateOf(0) }
     var chosenDirection by remember { mutableIntStateOf(0) } // 0: left, 1: right, 2: top, 3: bottom
     
@@ -405,8 +415,8 @@ fun WordCard(
                     .fillMaxWidth()
                     .height(200.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable { 
-                        showDetails = !showDetails
+                    .clickable {
+                        onShowDetailsChange(!showDetails)
                         if (useRandomDirections) {
                             chosenDirection = Random.nextInt(0, 4)
                         } else {

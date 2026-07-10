@@ -43,6 +43,7 @@ import com.example.english_app.ui.AnimationSettings
 import android.content.Context
 import com.example.english_app.ui.SettingsScreen
 import com.example.english_app.ui.ContactScreen
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
             try {
                 val account: GoogleSignInAccount = task.getResult(ApiException::class.java)
                 // Store the account info for navigation
-                googleAccountInfo = account
+                googleAccountInfoState.value = account
                 Toast.makeText(this@MainActivity, "Google Sign-In successful! Welcome ${account.displayName}", Toast.LENGTH_LONG).show()
             } catch (e: ApiException) {
                 Toast.makeText(this@MainActivity, "Google Sign-In failed: ${e.message}", Toast.LENGTH_LONG).show()
@@ -91,6 +92,9 @@ class MainActivity : ComponentActivity() {
 
             ENGLISH_APPTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
+                val googleAccountInfo by googleAccountInfoState
+                val firebaseUser = FirebaseAuth.getInstance().currentUser
+                val isLoggedIn = googleAccountInfo != null || firebaseUser != null
 
                 // Handle Google Sign-In result
                 LaunchedEffect(googleAccountInfo) {
@@ -98,7 +102,7 @@ class MainActivity : ComponentActivity() {
                         navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
-                        googleAccountInfo = null // Reset
+                        googleAccountInfoState.value = null // Reset
                     }
                 }
 
@@ -207,9 +211,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 darkTheme = darkTheme,
                                 onToggleTheme = { darkTheme = !darkTheme },
-                                userName = "User",
-                                userPhotoUrl = null,
-                                isLoggedIn = false
+                                userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
+                                userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
+                                isLoggedIn = isLoggedIn
                             )
                         }
                         composable(
@@ -220,9 +224,9 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) {
                             DashboardScreen(
-                                userName = "User",
-                                userEmail = "user@example.com",
-                                userPhotoUrl = null,
+                                userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
+                                userEmail = googleAccountInfo?.email ?: firebaseUser?.email ?: "user@example.com",
+                                userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
                                 onNavigateToHome = {
                                     navController.navigate("home")
                                 },
@@ -269,7 +273,7 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        private var googleAccountInfo: GoogleSignInAccount? = null
+        var googleAccountInfoState = mutableStateOf<GoogleSignInAccount?>(null)
     }
 }
 

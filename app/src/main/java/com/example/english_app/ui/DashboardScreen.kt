@@ -51,7 +51,15 @@ fun DashboardScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All") }
-    var floatingOffset by remember { mutableStateOf(0f) }
+    val infiniteTransition = rememberInfiniteTransition()
+    val floatingOffset by infiniteTransition.animateFloat(
+        initialValue = -10f,
+        targetValue = 10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
 
     val filters = listOf("All", "Recent", "Favorites", "Difficult")
 

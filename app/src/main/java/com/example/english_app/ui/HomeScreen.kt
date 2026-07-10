@@ -156,17 +156,20 @@ fun HomeScreen(
     
     // Text-to-Speech setup
     val context = LocalContext.current
+    var isTtsInitialized by remember { mutableStateOf(false) }
     val tts = remember { 
         TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                // Set language after initialization
+                isTtsInitialized = true
             }
         }
     }
     
     // Set language after TTS is initialized
-    LaunchedEffect(tts) {
-        tts.language = Locale.US
+    LaunchedEffect(isTtsInitialized) {
+        if (isTtsInitialized) {
+            tts.language = Locale.US
+        }
     }
     
     // Cleanup TTS on dispose
@@ -451,7 +454,7 @@ fun EnhancedCategoryCard(
 
             // Arrow
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                imageVector = Icons.Default.ArrowForward,
                 contentDescription = "Go to category",
                 tint = category.color,
                 modifier = Modifier.size(24.dp)

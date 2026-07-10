@@ -296,7 +296,7 @@ fun SignUpScreen(
                         isError = email.isNotBlank() && !isEmailValid(email),
                         supportingText = {
                             if (email.isNotBlank() && !isEmailValid(email)) {
-                                Text("Invalid email format", color = Color.Black)
+                                Text("Invalid email format", color = VibrantRed)
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
@@ -346,7 +346,7 @@ fun SignUpScreen(
                         isError = password.isNotBlank() && password.length < 6,
                         supportingText = {
                             if (password.isNotBlank() && password.length < 6) {
-                                Text("Password must be at least 6 characters", color = Color.Black)
+                                Text("Password must be at least 6 characters", color = VibrantRed)
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
@@ -396,7 +396,7 @@ fun SignUpScreen(
                         isError = confirmPassword.isNotBlank() && password != confirmPassword,
                         supportingText = {
                             if (confirmPassword.isNotBlank() && password != confirmPassword) {
-                                Text("Passwords don't match", color = Color.Black)
+                                Text("Passwords don't match", color = VibrantRed)
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
