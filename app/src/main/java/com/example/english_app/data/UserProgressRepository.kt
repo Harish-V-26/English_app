@@ -95,6 +95,7 @@ object UserProgressRepository {
 
     /** Records a quiz result — works for both guests (anonymous) and logged-in users. */
     fun recordQuizResult(categoryId: String, categoryTitle: String, score: Int, total: Int) {
+        android.util.Log.d("Dashboard", "recordQuizResult called: $categoryId score=$score/$total uid=${auth.currentUser?.uid}")
         withUid { uid ->
             val entry = mapOf(
                 "categoryId" to categoryId,
@@ -103,7 +104,10 @@ object UserProgressRepository {
                 "total" to total,
                 "timestamp" to System.currentTimeMillis()
             )
+            android.util.Log.d("Dashboard", "Saving quiz result to Firestore under uid=$uid")
             quizResultsCollection(uid).add(entry)
+                .addOnSuccessListener { android.util.Log.d("Dashboard", "✅ Quiz result saved successfully!") }
+                .addOnFailureListener { e -> android.util.Log.e("Dashboard", "❌ Failed to save quiz result: ${e.message}") }
         }
     }
 
@@ -209,7 +213,11 @@ object UserProgressRepository {
         }
 
         val wordReg = wordProgressCollection(uid).addSnapshotListener { snapshot, error ->
-            if (error != null || snapshot == null) return@addSnapshotListener
+            if (error != null) {
+                android.util.Log.e("Dashboard", "Error listening to wordProgress: ${error.message}", error)
+                return@addSnapshotListener
+            }
+            if (snapshot == null) return@addSnapshotListener
             favoriteCount = snapshot.count { it.getBoolean("favorite") == true }
             bookmarkedCount = snapshot.count { it.getBoolean("bookmarked") == true }
             wordsRated = snapshot.count { (it.getLong("difficulty") ?: 0L) > 0 }
@@ -217,7 +225,11 @@ object UserProgressRepository {
         }
 
         val quizReg = quizResultsCollection(uid).addSnapshotListener { snapshot, error ->
-            if (error != null || snapshot == null) return@addSnapshotListener
+            if (error != null) {
+                android.util.Log.e("Dashboard", "Error listening to quizResults: ${error.message}", error)
+                return@addSnapshotListener
+            }
+            if (snapshot == null) return@addSnapshotListener
             quizzesTaken = snapshot.size()
             var totalScore = 0
             var totalQuestions = 0
