@@ -125,6 +125,65 @@ object UserProgressRepository {
             onResult(DashboardStats())
         }
     }
+
+    class DashboardListener(
+        val wordReg: com.google.firebase.firestore.ListenerRegistration?,
+        val quizReg: com.google.firebase.firestore.ListenerRegistration?
+    ) {
+        fun remove() {
+            wordReg?.remove()
+            quizReg?.remove()
+        }
+    }
+
+    /** Real-time aggregate stats used by the Dashboard screen. */
+    fun observeDashboardStats(onResult: (DashboardStats) -> Unit): DashboardListener {
+        val uid = currentUid() ?: run {
+            onResult(DashboardStats())
+            return DashboardListener(null, null)
+        }
+
+        var favoriteCount = 0
+        var bookmarkedCount = 0
+        var wordsRated = 0
+        var quizzesTaken = 0
+        var quizAccuracy = 0f
+
+        fun emit() {
+            onResult(
+                DashboardStats(
+                    favoriteCount = favoriteCount,
+                    bookmarkedCount = bookmarkedCount,
+                    wordsRated = wordsRated,
+                    quizzesTaken = quizzesTaken,
+                    quizAccuracy = quizAccuracy
+                )
+            )
+        }
+
+        val wordReg = wordProgressCollection(uid).addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) return@addSnapshotListener
+            favoriteCount = snapshot.count { it.getBoolean("favorite") == true }
+            bookmarkedCount = snapshot.count { it.getBoolean("bookmarked") == true }
+            wordsRated = snapshot.count { (it.getLong("difficulty") ?: 0L) > 0 }
+            emit()
+        }
+
+        val quizReg = quizResultsCollection(uid).addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) return@addSnapshotListener
+            quizzesTaken = snapshot.size()
+            var totalScore = 0
+            var totalQuestions = 0
+            snapshot.forEach { doc ->
+                totalScore += (doc.getLong("score") ?: 0L).toInt()
+                totalQuestions += (doc.getLong("total") ?: 0L).toInt()
+            }
+            quizAccuracy = if (totalQuestions > 0) totalScore.toFloat() / totalQuestions else 0f
+            emit()
+        }
+
+        return DashboardListener(wordReg, quizReg)
+    }
 }
 
 data class DashboardStats(

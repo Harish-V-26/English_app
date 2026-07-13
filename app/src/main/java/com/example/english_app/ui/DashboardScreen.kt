@@ -55,8 +55,13 @@ fun DashboardScreen(
     var selectedFilter by remember { mutableStateOf("All") }
     var stats by remember { mutableStateOf(DashboardStats()) }
 
-    LaunchedEffect(Unit) {
-        UserProgressRepository.loadDashboardStats { loaded -> stats = loaded }
+    DisposableEffect(Unit) {
+        val listener = UserProgressRepository.observeDashboardStats { loaded ->
+            stats = loaded
+        }
+        onDispose {
+            listener.remove()
+        }
     }
 
     val infiniteTransition = rememberInfiniteTransition()
