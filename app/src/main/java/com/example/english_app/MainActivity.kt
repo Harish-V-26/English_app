@@ -43,6 +43,9 @@ import com.example.english_app.ui.AnimationSettings
 import android.content.Context
 import com.example.english_app.ui.SettingsScreen
 import com.example.english_app.ui.ContactScreen
+import com.example.english_app.ui.QuizHubScreen
+import com.example.english_app.ui.QuizScreen
+import com.example.english_app.ui.PilotTestScreen
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
@@ -184,7 +187,10 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("login") { inclusive = true }
                                     }
                                 },
-                                animationSettings = animationSettings
+                                animationSettings = animationSettings,
+                                onStartQuiz = { categoryId ->
+                                    navController.navigate("quiz/$categoryId")
+                                }
                             )
                         }
                         composable(
@@ -204,6 +210,7 @@ class MainActivity : ComponentActivity() {
                                 onContact = { navController.navigate("contact") },
                                 onHome = { navController.navigate("home") },
                                 onLogin = { navController.navigate("login") },
+                                onQuiz = { navController.navigate("quizHub") },
                                 onLogout = {
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
@@ -265,6 +272,49 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) {
                             ContactScreen(onBack = { navController.popBackStack() })
+                        }
+                        composable(
+                            route = "quizHub",
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) {
+                            QuizHubScreen(
+                                onBack = { navController.popBackStack() },
+                                onCategorySelected = { category ->
+                                    navController.navigate("quiz/${category.id}")
+                                },
+                                onPilotTest = {
+                                    navController.navigate("pilotTest")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "pilotTest",
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) {
+                            PilotTestScreen(onBack = { navController.popBackStack() })
+                        }
+                        composable(
+                            route = "quiz/{categoryId}",
+                            arguments = listOf(
+                                navArgument("categoryId") { type = NavType.StringType }
+                            ),
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) { backStackEntry ->
+                            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+                            val quizCategory = categories.find { it.id == categoryId } ?: categories.first()
+                            QuizScreen(
+                                category = quizCategory,
+                                onBack = { navController.popBackStack() }
+                            )
                         }
                     }
                 }

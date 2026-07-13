@@ -36,6 +36,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import kotlinx.coroutines.launch
+import com.example.english_app.data.UserProgressRepository
+import com.example.english_app.data.DashboardStats
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +53,12 @@ fun DashboardScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All") }
+    var stats by remember { mutableStateOf(DashboardStats()) }
+
+    LaunchedEffect(Unit) {
+        UserProgressRepository.loadDashboardStats { loaded -> stats = loaded }
+    }
+
     val infiniteTransition = rememberInfiniteTransition()
     val floatingOffset by infiniteTransition.animateFloat(
         initialValue = -10f,
@@ -139,7 +147,7 @@ fun DashboardScreen(
                 
                 // Progress Stats
                 item {
-                    ProgressStats()
+                    ProgressStats(stats)
                 }
                 
                 // Today's Challenge
@@ -455,7 +463,12 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
 }
 
 @Composable
-fun ProgressStats() {
+fun ProgressStats(stats: DashboardStats) {
+    val totalWordsInApp = categories.sumOf { it.words.size }
+    val ratedProgress = if (totalWordsInApp > 0) stats.wordsRated.toFloat() / totalWordsInApp else 0f
+    val quizProgress = stats.quizAccuracy.coerceIn(0f, 1f)
+    val favoriteProgress = if (totalWordsInApp > 0) stats.favoriteCount.toFloat() / totalWordsInApp else 0f
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -475,18 +488,18 @@ fun ProgressStats() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ProgressPieChart(progress = 0.24f, color = VibrantBlue, label = "Lessons")
-                ProgressPieChart(progress = 0.156f, color = VibrantGreen, label = "Words")
-                ProgressPieChart(progress = 0.233f, color = VibrantOrange, label = "Streak")
+                ProgressPieChart(progress = ratedProgress, color = VibrantBlue, label = "Words Rated")
+                ProgressPieChart(progress = quizProgress, color = VibrantGreen, label = "Quiz Accuracy")
+                ProgressPieChart(progress = favoriteProgress, color = VibrantOrange, label = "Favorites")
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ProgressStat("Lessons", "12", "50", 0.24f, VibrantBlue)
-                ProgressStat("Words", "156", "1000", 0.156f, VibrantGreen)
-                ProgressStat("Streak", "7", "30", 0.233f, VibrantOrange)
+                ProgressStat("Rated", "${stats.wordsRated}", "$totalWordsInApp", ratedProgress, VibrantBlue)
+                ProgressStat("Quizzes", "${stats.quizzesTaken}", "taken", quizProgress, VibrantGreen)
+                ProgressStat("Favorites", "${stats.favoriteCount}", "$totalWordsInApp", favoriteProgress, VibrantOrange)
             }
         }
     }

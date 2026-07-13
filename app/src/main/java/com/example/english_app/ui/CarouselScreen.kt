@@ -58,6 +58,8 @@ import kotlinx.coroutines.delay
 import kotlin.random.Random
 import androidx.compose.ui.text.font.FontStyle
 import com.example.english_app.R
+import com.example.english_app.data.UserProgressRepository
+import android.content.Intent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,16 +67,26 @@ fun CarouselScreen(
     category: Category,
     onBack: () -> Unit,
     onLogout: () -> Unit,
-    animationSettings: AnimationSettings = AnimationSettings()
+    animationSettings: AnimationSettings = AnimationSettings(),
+    onStartQuiz: (String) -> Unit = {}
 ) {
     var currentWordIndex by remember { mutableIntStateOf(0) }
     var isFavorite by remember { mutableStateOf(false) }
+    var isBookmarked by remember { mutableStateOf(false) }
     var difficultyRating by remember { mutableIntStateOf(0) }
-    var showPracticeMode by remember { mutableStateOf(false) }
     var showDetails by remember { mutableStateOf(false) }
     
     val words = category.words
     val currentWord = words[currentWordIndex]
+
+    // Load this word's saved favorite/bookmark/difficulty state from Firestore
+    LaunchedEffect(currentWordIndex, category.id) {
+        UserProgressRepository.loadWordProgress(category.id, currentWord.word) { favorite, bookmarked, difficulty ->
+            isFavorite = favorite
+            isBookmarked = bookmarked
+            difficultyRating = difficulty
+        }
+    }
     
     // Text-to-Speech setup
     val context = LocalContext.current
@@ -260,9 +272,15 @@ fun CarouselScreen(
                 WordCard(
                     word = currentWord,
                     isFavorite = isFavorite,
-                    onFavoriteToggle = { isFavorite = !isFavorite },
+                    onFavoriteToggle = {
+                        isFavorite = !isFavorite
+                        UserProgressRepository.setFavorite(category.id, currentWord.word, isFavorite)
+                    },
                     difficultyRating = difficultyRating,
-                    onDifficultyChange = { difficultyRating = it },
+                    onDifficultyChange = {
+                        difficultyRating = it
+                        UserProgressRepository.setDifficulty(category.id, currentWord.word, it)
+                    },
                     onSpeakWord = {
                         tts.speak(currentWord.word, TextToSpeech.QUEUE_FLUSH, null, null)
                     },
@@ -283,19 +301,32 @@ fun CarouselScreen(
                     ActionButton(
                         icon = Icons.Default.PlayArrow,
                         text = "Practice",
-                        onClick = { showPracticeMode = true },
+                        onClick = { onStartQuiz(category.id) },
                         color = VibrantBlue
                     )
                     ActionButton(
                         icon = Icons.Default.Share,
                         text = "Share",
-                        onClick = { /* TODO: Share word */ },
+                        onClick = {
+                            val shareText = "${currentWord.word} (${currentWord.pronunciation})\n" +
+                                "${currentWord.definition}\n" +
+                                "Example: ${currentWord.example}\n\n" +
+                                "Learning English vocabulary with ENGLISH_APP!"
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, shareText)
+                            }
+                            context.startActivity(Intent.createChooser(sendIntent, "Share this word"))
+                        },
                         color = VibrantOrange
                     )
                     ActionButton(
-                        icon = Icons.Default.Bookmark,
-                        text = "Save",
-                        onClick = { /* TODO: Save to notes */ },
+                        icon = if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        text = if (isBookmarked) "Saved" else "Save",
+                        onClick = {
+                            isBookmarked = !isBookmarked
+                            UserProgressRepository.setBookmarked(category.id, currentWord.word, isBookmarked)
+                        },
                         color = VibrantPink
                     )
                 }
@@ -334,14 +365,6 @@ fun CarouselScreen(
                         showDetails = false
                     }
                 }
-            )
-        }
-        
-        // Practice mode dialog
-        if (showPracticeMode) {
-            PracticeModeDialog(
-                word = currentWord,
-                onDismiss = { showPracticeMode = false }
             )
         }
     }
@@ -432,14 +455,31 @@ fun WordCard(
                         }
                     }
             ) {
-                Image(
-                    painter = painterResource(
-                        id = getImageResId(word.imageUrl)
-                    ),
-                    contentDescription = "Image for ${word.word}",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (word.imageUrl.isBlank()) {
+                    // No image assigned yet — show a gray placeholder box
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFE0E0E0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "No image yet for ${word.word}",
+                            tint = Color(0xFFBDBDBD),
+                            modifier = Modifier.size(56.dp)
+                        )
+                    }
+                } else {
+                    Image(
+                        painter = painterResource(
+                            id = getImageResId(word.imageUrl)
+                        ),
+                        contentDescription = "Image for ${word.word}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
                 
                 // Click indicator overlay
                 Box(
@@ -693,6 +733,31 @@ fun getImageResId(imageName: String): Int {
         "word18" -> R.drawable.word18 // Bat (mammal) - keep existing
         "word19" -> R.drawable.word19 // Bat (sports) - keep existing
         "word20" -> R.drawable.word20 // Cloud - keep existing
+
+        // Advanced Vocabulary (doc1) - user-provided images
+        "doc1_halcyon" -> R.drawable.doc1_halcyon
+        "doc1_jubilant" -> R.drawable.doc1_jubilant
+        "doc1_poignant" -> R.drawable.doc1_poignant
+
+        // Blended Vocabulary (doc4) - user-provided images
+        "doc4_blog" -> R.drawable.doc4_blog
+        "doc4_brunch" -> R.drawable.doc4_brunch
+        "doc4_chillax" -> R.drawable.doc4_chillax
+        "doc4_chortle" -> R.drawable.doc4_chortle
+        "doc4_frenemy" -> R.drawable.doc4_frenemy
+        "doc4_motel" -> R.drawable.doc4_motel
+        "doc4_smog" -> R.drawable.doc4_smog
+
+        // Kitchen Vocabulary (doc5) - user-provided images
+        "doc5_blanch" -> R.drawable.doc5_blanch
+        "doc5_grate" -> R.drawable.doc5_grate
+        "doc5_knead" -> R.drawable.doc5_knead
+        "doc5_ladle" -> R.drawable.doc5_ladle
+        "doc5_mash" -> R.drawable.doc5_mash
+        "doc5_mortar_pestle" -> R.drawable.doc5_mortar_pestle
+        "doc5_tongs" -> R.drawable.doc5_tongs
+        "doc5_whisk" -> R.drawable.doc5_whisk
+
         else -> R.drawable.word1 // fallback
     }
 }

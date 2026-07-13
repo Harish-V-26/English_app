@@ -107,7 +107,7 @@ val words3 = listOf(
     Word("Cloud (weather phenomenon)", "klaʊd", "A visible mass of condensed water vapor floating in the atmosphere.", "Dark clouds gathered before the storm.", "word20")
 )
 
-val categories = listOf(
+val builtInCategories = listOf(
     Category(
         id = "words1",
         title = "Basic words",
@@ -134,6 +134,10 @@ val categories = listOf(
     )
 )
 
+// Full category list = original 3 categories + the 7 new categories built from
+// the department's word documents (docCategories lives in VocabularyDocs.kt)
+val categories = builtInCategories + docCategories
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -144,6 +148,7 @@ fun HomeScreen(
     onHome: () -> Unit,
     onLogin: () -> Unit = {},
     onLogout: () -> Unit = {},
+    onQuiz: () -> Unit = {},
     darkTheme: Boolean,
     onToggleTheme: () -> Unit,
     userName: String = "User",
@@ -326,7 +331,52 @@ fun HomeScreen(
                     singleLine = true
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
+                // Practice / Quiz shortcut
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onQuiz() }
+                        .shadow(8.dp, RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = VibrantOrange),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Quiz,
+                            contentDescription = "Practice and Quiz",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Practice & Take a Quiz",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Test what you've learned from any category",
+                                fontSize = 12.sp,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Go to quiz",
+                            tint = Color.White
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // Categories with navigation
                 val filteredCategories = categories.filter { it.title.contains(searchQuery, ignoreCase = true) }
                 if (filteredCategories.isNotEmpty()) {
