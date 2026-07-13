@@ -17,8 +17,29 @@ import com.google.firebase.firestore.FirebaseFirestore
 object UserProgressRepository {
 
     private val db by lazy { FirebaseFirestore.getInstance() }
+    private val auth by lazy { FirebaseAuth.getInstance() }
 
-    private fun currentUid(): String? = FirebaseAuth.getInstance().currentUser?.uid
+    /**
+     * Returns the current user's UID. If no user is signed in (guest),
+     * signs in anonymously so progress can still be saved.
+     */
+    private fun currentUid(): String? = auth.currentUser?.uid
+
+    /**
+     * Ensures there is a signed-in Firebase user (anonymous if needed),
+     * then runs [block] with that UID.
+     */
+    private fun withUid(block: (uid: String) -> Unit) {
+        val uid = auth.currentUser?.uid
+        if (uid != null) {
+            block(uid)
+        } else {
+            auth.signInAnonymously()
+                .addOnSuccessListener { result ->
+                    result.user?.uid?.let { block(it) }
+                }
+        }
+    }
 
     private fun wordDocId(categoryId: String, word: String): String =
         "${categoryId}_${word}".replace(Regex("[^A-Za-z0-9_]"), "_")
@@ -30,21 +51,24 @@ object UserProgressRepository {
         db.collection("users").document(uid).collection("quizResults")
 
     fun setFavorite(categoryId: String, word: String, isFavorite: Boolean) {
-        val uid = currentUid() ?: return
-        wordProgressCollection(uid).document(wordDocId(categoryId, word))
-            .set(mapOf("favorite" to isFavorite), com.google.firebase.firestore.SetOptions.merge())
+        withUid { uid ->
+            wordProgressCollection(uid).document(wordDocId(categoryId, word))
+                .set(mapOf("favorite" to isFavorite), com.google.firebase.firestore.SetOptions.merge())
+        }
     }
 
     fun setBookmarked(categoryId: String, word: String, isBookmarked: Boolean) {
-        val uid = currentUid() ?: return
-        wordProgressCollection(uid).document(wordDocId(categoryId, word))
-            .set(mapOf("bookmarked" to isBookmarked), com.google.firebase.firestore.SetOptions.merge())
+        withUid { uid ->
+            wordProgressCollection(uid).document(wordDocId(categoryId, word))
+                .set(mapOf("bookmarked" to isBookmarked), com.google.firebase.firestore.SetOptions.merge())
+        }
     }
 
     fun setDifficulty(categoryId: String, word: String, rating: Int) {
-        val uid = currentUid() ?: return
-        wordProgressCollection(uid).document(wordDocId(categoryId, word))
-            .set(mapOf("difficulty" to rating), com.google.firebase.firestore.SetOptions.merge())
+        withUid { uid ->
+            wordProgressCollection(uid).document(wordDocId(categoryId, word))
+                .set(mapOf("difficulty" to rating), com.google.firebase.firestore.SetOptions.merge())
+        }
     }
 
     /** Loads saved favorite/bookmark/difficulty state for one word. */
@@ -69,16 +93,18 @@ object UserProgressRepository {
             }
     }
 
+    /** Records a quiz result — works for both guests (anonymous) and logged-in users. */
     fun recordQuizResult(categoryId: String, categoryTitle: String, score: Int, total: Int) {
-        val uid = currentUid() ?: return
-        val entry = mapOf(
-            "categoryId" to categoryId,
-            "categoryTitle" to categoryTitle,
-            "score" to score,
-            "total" to total,
-            "timestamp" to System.currentTimeMillis()
-        )
-        quizResultsCollection(uid).add(entry)
+        withUid { uid ->
+            val entry = mapOf(
+                "categoryId" to categoryId,
+                "categoryTitle" to categoryTitle,
+                "score" to score,
+                "total" to total,
+                "timestamp" to System.currentTimeMillis()
+            )
+            quizResultsCollection(uid).add(entry)
+        }
     }
 
     /** Aggregate stats used by the Dashboard screen. */
@@ -126,23 +152,44 @@ object UserProgressRepository {
         }
     }
 
-    class DashboardListener(
+    open class DashboardListener(
         val wordReg: com.google.firebase.firestore.ListenerRegistration?,
         val quizReg: com.google.firebase.firestore.ListenerRegistration?
     ) {
-        fun remove() {
+        open fun remove() {
             wordReg?.remove()
             quizReg?.remove()
         }
     }
 
-    /** Real-time aggregate stats used by the Dashboard screen. */
+    /** Real-time aggregate stats used by the Dashboard screen. Works for guests too. */
     fun observeDashboardStats(onResult: (DashboardStats) -> Unit): DashboardListener {
-        val uid = currentUid() ?: run {
-            onResult(DashboardStats())
-            return DashboardListener(null, null)
+        val uid = auth.currentUser?.uid
+        if (uid != null) {
+            return attachListeners(uid, onResult)
         }
+        // Guest: sign in anonymously first, then attach listeners
+        var wordReg: com.google.firebase.firestore.ListenerRegistration? = null
+        var quizReg: com.google.firebase.firestore.ListenerRegistration? = null
+        val holder = DashboardListener(null, null)
+        auth.signInAnonymously().addOnSuccessListener { result ->
+            result.user?.uid?.let { newUid ->
+                val l = attachListeners(newUid, onResult)
+                wordReg = l.wordReg
+                quizReg = l.quizReg
+            }
+        }.addOnFailureListener {
+            onResult(DashboardStats())
+        }
+        return object : DashboardListener(null, null) {
+            override fun remove() {
+                wordReg?.remove()
+                quizReg?.remove()
+            }
+        }
+    }
 
+    private fun attachListeners(uid: String, onResult: (DashboardStats) -> Unit): DashboardListener {
         var favoriteCount = 0
         var bookmarkedCount = 0
         var wordsRated = 0
