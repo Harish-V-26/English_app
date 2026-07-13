@@ -56,8 +56,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Google Sign-In setup
+        val webClientId = "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com"
+
+        // Google Sign-In setup — request idToken so we can sign into Firebase Auth
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(webClientId)
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
@@ -70,9 +73,16 @@ class MainActivity : ComponentActivity() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account: GoogleSignInAccount = task.getResult(ApiException::class.java)
-                // Store the account info for navigation
-                googleAccountInfoState.value = account
-                Toast.makeText(this@MainActivity, "Google Sign-In successful! Welcome ${account.displayName}", Toast.LENGTH_LONG).show()
+                // Sign into Firebase Auth with the Google credential
+                val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(account.idToken, null)
+                FirebaseAuth.getInstance().signInWithCredential(credential)
+                    .addOnSuccessListener {
+                        googleAccountInfoState.value = account
+                        Toast.makeText(this@MainActivity, "Google Sign-In successful! Welcome ${account.displayName}", Toast.LENGTH_LONG).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this@MainActivity, "Firebase auth failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
             } catch (e: ApiException) {
                 Toast.makeText(this@MainActivity, "Google Sign-In failed: ${e.message}", Toast.LENGTH_LONG).show()
             }

@@ -51,8 +51,6 @@ fun DashboardScreen(
     onSettings: () -> Unit,
     onContact: () -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("All") }
     var stats by remember { mutableStateOf(DashboardStats()) }
 
     DisposableEffect(Unit) {
@@ -73,8 +71,6 @@ fun DashboardScreen(
             repeatMode = RepeatMode.Reverse
         )
     )
-
-    val filters = listOf("All", "Recent", "Favorites", "Difficult")
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -139,110 +135,45 @@ fun DashboardScreen(
                 item {
                     UserProfileSection(userName, userEmail, userPhotoUrl)
                 }
-                
-                // Search Bar
-                item {
-                    SearchBar(searchQuery) { searchQuery = it }
-                }
-                
-                // Filter Chips
-                item {
-                    FilterChips(filters, selectedFilter) { selectedFilter = it }
-                }
-                
+
                 // Progress Stats
                 item {
                     ProgressStats(stats)
                 }
-                
+
                 // Today's Challenge
                 item {
-                    TodaysChallenge(floatingOffset)
+                    TodaysChallenge(floatingOffset, stats)
                 }
-                
+
                 // Achievement Badges
                 item {
-                    AchievementBadges()
+                    AchievementBadges(stats)
                 }
-                
-                // Quick Actions
+
+                // Recent Quiz Activity
                 item {
-                    QuickActions(onNavigateToHome)
-                }
-                
-                // Recent Activity
-                item {
-                    RecentActivity()
-                }
-                
-                // Word of the Day
-                item {
-                    WordOfTheDay()
+                    RecentQuizActivity(stats)
                 }
             }
         }
     }
 }
 
-@Composable
-fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = { Text("Search words...", color = Color.Gray) },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = VibrantGreen
-            )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = VibrantGreen,
-            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Black,
-            cursorColor = Color.Black
-        ),
-        singleLine = true
-    )
-}
 
 @Composable
-fun FilterChips(filters: List<String>, selectedFilter: String, onFilterSelected: (String) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        filters.forEach { filter ->
-            FilterChip(
-                onClick = { onFilterSelected(filter) },
-                label = { Text(filter) },
-                selected = filter == selectedFilter,
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = VibrantGreen,
-                    selectedLabelColor = Color.White
-                )
-            )
-        }
-    }
-}
-
-@Composable
-fun TodaysChallenge(floatingOffset: Float) {
+fun TodaysChallenge(floatingOffset: Float, stats: DashboardStats) {
+    val wordsGoal = 5
+    val wordsLearned = stats.wordsRated.coerceAtMost(wordsGoal)
+    val progress = if (wordsGoal > 0) wordsLearned.toFloat() / wordsGoal else 0f
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .offset(y = floatingOffset.dp)
             .shadow(8.dp, RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFE0B2)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE0B2))
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -261,28 +192,22 @@ fun TodaysChallenge(floatingOffset: Float) {
                     modifier = Modifier.size(24.dp)
                 )
             }
-            
             Spacer(modifier = Modifier.height(8.dp))
-            
             Text(
-                text = "Learn 5 new words today!",
+                text = "Rate $wordsGoal words today!",
                 fontSize = 14.sp,
                 color = Color(0xFFE65100)
             )
-            
             Spacer(modifier = Modifier.height(12.dp))
-            
             LinearProgressIndicator(
-                progress = { 0.6f },
+                progress = { progress },
                 modifier = Modifier.fillMaxWidth(),
                 color = Color(0xFFE65100),
                 trackColor = Color(0xFFE65100).copy(alpha = 0.3f)
             )
-            
             Spacer(modifier = Modifier.height(8.dp))
-            
             Text(
-                text = "3/5 completed",
+                text = "$wordsLearned/$wordsGoal completed",
                 fontSize = 12.sp,
                 color = Color(0xFFE65100),
                 textAlign = TextAlign.End,
@@ -293,7 +218,11 @@ fun TodaysChallenge(floatingOffset: Float) {
 }
 
 @Composable
-fun AchievementBadges() {
+fun AchievementBadges(stats: DashboardStats) {
+    val hasFirstQuiz = stats.quizzesTaken >= 1
+    val hasPerfectScore = stats.quizAccuracy >= 1.0f
+    val hasFavorites = stats.favoriteCount >= 1
+    val hasRated = stats.wordsRated >= 10
     Column {
         Text(
             text = "🏆 Achievements",
@@ -301,15 +230,14 @@ fun AchievementBadges() {
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-        
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            AchievementBadge("First Word", "🌟", true)
-            AchievementBadge("5 Day Streak", "🔥", true)
-            AchievementBadge("Vocabulary Master", "👑", false)
-            AchievementBadge("Perfect Score", "💯", false)
+            AchievementBadge("First Quiz", "🌟", hasFirstQuiz)
+            AchievementBadge("Favorited", "❤️", hasFavorites)
+            AchievementBadge("10 Words Rated", "👑", hasRated)
+            AchievementBadge("Perfect Score", "💯", hasPerfectScore)
         }
     }
 }
@@ -340,32 +268,49 @@ fun AchievementBadge(title: String, emoji: String, unlocked: Boolean) {
 }
 
 @Composable
-fun RecentActivity() {
+fun RecentQuizActivity(stats: DashboardStats) {
+    if (stats.quizzesTaken == 0) return
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "📚 Recent Activity",
+                text = "📚 Your Quiz Summary",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-            
-            ActivityItem("Learned 'Clandestine'", "2 hours ago", "📖")
-            ActivityItem("Completed Words 1", "Yesterday", "✅")
-            ActivityItem("Achieved 3-day streak", "2 days ago", "🔥")
+            ActivityItem(
+                title = "Quizzes Taken: ${stats.quizzesTaken}",
+                subtitle = "Keep it up!",
+                icon = "📝"
+            )
+            ActivityItem(
+                title = "Overall Accuracy: ${(stats.quizAccuracy * 100).toInt()}%",
+                subtitle = if (stats.quizAccuracy >= 0.7f) "Great job! 🎉" else "Keep practicing!",
+                icon = "🎯"
+            )
+            if (stats.favoriteCount > 0) {
+                ActivityItem(
+                    title = "Favorited ${stats.favoriteCount} word(s)",
+                    subtitle = "Your personal word list is growing!",
+                    icon = "⭐"
+                )
+            }
+            if (stats.wordsRated > 0) {
+                ActivityItem(
+                    title = "Rated ${stats.wordsRated} word(s)",
+                    subtitle = "Difficulty ratings help you focus!",
+                    icon = "🏷️"
+                )
+            }
         }
     }
 }
 
 @Composable
-fun ActivityItem(title: String, time: String, icon: String) {
+fun ActivityItem(title: String, subtitle: String, icon: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -375,16 +320,8 @@ fun ActivityItem(title: String, time: String, icon: String) {
         Text(text = icon, fontSize = 16.sp)
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = time,
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
+            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = subtitle, fontSize = 12.sp, color = Color.Gray)
         }
     }
 }
