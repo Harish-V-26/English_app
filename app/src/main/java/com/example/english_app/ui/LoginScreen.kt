@@ -67,13 +67,14 @@ import com.google.firebase.auth.AuthResult
 import com.example.english_app.R
 import androidx.compose.ui.layout.ContentScale
 
+private const val ALLOWED_DOMAIN = "@srcas.ac.in"
+
 @Composable
 fun LoginScreen(
     onLoginClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
     onForgotPassword: (() -> Unit)? = null,
     onSignUp: (() -> Unit)? = null,
     onGoogleLogin: (() -> Unit)? = null,
-    onFacebookLogin: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var email by remember { mutableStateOf("") }
@@ -103,7 +104,11 @@ fun LoginScreen(
         return emailPattern.matcher(email).matches()
     }
 
-    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid(email)
+    fun isEmailDomainValid(email: String): Boolean {
+        return email.lowercase().endsWith(ALLOWED_DOMAIN)
+    }
+
+    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid(email) && isEmailDomainValid(email)
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -151,6 +156,19 @@ fun LoginScreen(
                 )
         )
 
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .offset(
+                    x = (250 + floatAnimation * 10).dp,
+                    y = (600 + floatAnimation * -20).dp
+                )
+                .background(
+                    color = VibrantPurple.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(30)
+                )
+        )
+
         // Main content
         Box(
             modifier = Modifier
@@ -178,42 +196,23 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
                 )
-                // Character/avatar above the login form
-                Box(
+                // College logo
+                Card(
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(40.dp))
-                        .background(VibrantBlue)
-                        .align(Alignment.CenterHorizontally),
-                    contentAlignment = Alignment.Center
+                        .size(150.dp)
+                        .shadow(20.dp, RoundedCornerShape(24.dp)),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    if (email.isNotBlank()) {
-                        Text(
-                            text = email.take(1).uppercase(),
-                            color = Color.White, // Always white on VibrantBlue background
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 36.sp
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Avatar",
-                            tint = Color.White,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.clg),
+                        contentDescription = "SRCAS Shield Logo",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        contentScale = ContentScale.Fit
+                    )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-            
-                // App logo/title
-                Image(
-                    painter = painterResource(id = R.drawable.ic_app_logo),
-                    contentDescription = "App Logo",
-                    modifier = Modifier
-                        .size(120.dp)
-                        .shadow(20.dp, RoundedCornerShape(60)),
-                    contentScale = ContentScale.Fit
-                )
             
                 Spacer(modifier = Modifier.height(24.dp))
             
@@ -251,8 +250,38 @@ fun LoginScreen(
                             fontWeight = FontWeight.Bold,
                             color = PrimaryText
                         )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Domain restriction notice
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = VibrantBlue.copy(alpha = 0.08f)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Email,
+                                    contentDescription = null,
+                                    tint = VibrantBlue,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Only @srcas.ac.in emails are allowed",
+                                    color = VibrantBlue,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                         
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         
                         // Email field
                         OutlinedTextField(
@@ -261,7 +290,8 @@ fun LoginScreen(
                                 email = it
                                 if (error.isNotEmpty()) error = ""
                             },
-                            label = { Text("Email") },
+                            label = { Text("College Email") },
+                            placeholder = { Text("yourname@srcas.ac.in") },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Email,
@@ -277,10 +307,15 @@ fun LoginScreen(
                                 keyboardType = KeyboardType.Email,
                                 imeAction = ImeAction.Next
                             ),
-                            isError = email.isNotBlank() && !isEmailValid(email),
+                            isError = email.isNotBlank() && (!isEmailValid(email) || !isEmailDomainValid(email)),
                             supportingText = {
-                                if (email.isNotBlank() && !isEmailValid(email)) {
-                                    Text("Invalid email format", color = VibrantRed)
+                                when {
+                                    email.isNotBlank() && !isEmailValid(email) -> {
+                                        Text("Invalid email format", color = VibrantRed)
+                                    }
+                                    email.isNotBlank() && isEmailValid(email) && !isEmailDomainValid(email) -> {
+                                        Text("Only @srcas.ac.in emails are allowed", color = VibrantRed)
+                                    }
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
@@ -342,6 +377,8 @@ fun LoginScreen(
                                                     error = task.exception?.localizedMessage ?: "Login failed."
                                                 }
                                             }
+                                    } else if (email.isNotBlank() && !isEmailDomainValid(email)) {
+                                        error = "Only @srcas.ac.in emails are allowed."
                                     } else {
                                         error = "Please enter valid credentials."
                                     }
@@ -409,20 +446,18 @@ fun LoginScreen(
                                 if (isFormValid) {
                                     loading = true
                                     error = ""
-                                    println("DEBUG: Attempting login with email: $email")
                                     auth.signInWithEmailAndPassword(email, password)
                                         .addOnCompleteListener { task ->
                                             loading = false
                                             if (task.isSuccessful) {
-                                                println("DEBUG: Login successful")
                                                 onLoginClick(email, password, rememberMe)
                                             } else {
-                                                println("DEBUG: Login failed: ${task.exception?.message}")
                                                 error = task.exception?.localizedMessage ?: "Login failed."
                                             }
                                         }
+                                } else if (email.isNotBlank() && !isEmailDomainValid(email)) {
+                                    error = "Only @srcas.ac.in emails are allowed."
                                 } else {
-                                    println("DEBUG: Form validation failed")
                                     error = "Please enter valid credentials."
                                 }
                             },
@@ -454,30 +489,6 @@ fun LoginScreen(
                         
                         Spacer(modifier = Modifier.height(24.dp))
                         
-                        // Test login button (for development/testing)
-                        OutlinedButton(
-                            onClick = {
-                                println("DEBUG: Test login clicked")
-                                onLoginClick("test@example.com", "password", false)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = VibrantGreen
-                            ),
-                            border = BorderStroke(1.dp, VibrantGreen),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Text(
-                                "Test Login (Skip Authentication)",
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.height(24.dp))
-                        
                         // Divider
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -505,65 +516,53 @@ fun LoginScreen(
                         
                         Spacer(modifier = Modifier.height(24.dp))
                         
-                        // Social login buttons
-                        Row(
+                        // Google Sign-In button
+                        OutlinedButton(
+                            onClick = { onGoogleLogin?.invoke() },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                .height(52.dp)
+                                .semantics { contentDescription = "googleSignInButton" },
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.5.dp, Color.Gray.copy(alpha = 0.4f)),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White,
+                                contentColor = PrimaryText
+                            )
                         ) {
-                            // Google button (classic)
-                            Button(
-                                onClick = { onGoogleLogin?.invoke() },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.White,
-                                    contentColor = VibrantBlue
-                                ),
-                                shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(2.dp, VibrantBlue)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = android.R.drawable.ic_dialog_email),
-                                        contentDescription = "Google",
-                                        tint = VibrantBlue,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        "Sign in with Google",
-                                        color = VibrantBlue,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                            // Facebook button (unchanged)
-                            Button(
-                                onClick = { onFacebookLogin?.invoke() },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF1877F2)
-                                ),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        "Facebook",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_google),
+                                    contentDescription = "Google",
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    "Sign in with Google",
+                                    color = PrimaryText,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 15.sp
+                                )
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Google domain hint
+                        Text(
+                            text = "Use your @srcas.ac.in Google account",
+                            color = SecondaryText,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(28.dp))
+
                         // Sign up link
                         Row(
                             modifier = Modifier.fillMaxWidth(),

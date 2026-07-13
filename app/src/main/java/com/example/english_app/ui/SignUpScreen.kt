@@ -42,11 +42,18 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import com.example.english_app.R
+
+private const val ALLOWED_DOMAIN = "@srcas.ac.in"
 
 @Composable
 fun SignUpScreen(
     onSignUpClick: (String, String, String, Boolean) -> Unit = { _, _, _, _ -> },
     onBackToLogin: (() -> Unit)? = null,
+    onGoogleSignUp: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var name by remember { mutableStateOf("") }
@@ -79,11 +86,16 @@ fun SignUpScreen(
         return emailPattern.matcher(email).matches()
     }
 
+    fun isEmailDomainValid(email: String): Boolean {
+        return email.lowercase().endsWith(ALLOWED_DOMAIN)
+    }
+
     val isFormValid = name.isNotBlank() && 
                      email.isNotBlank() && 
                      password.isNotBlank() && 
                      confirmPassword.isNotBlank() && 
                      isEmailValid(email) && 
+                     isEmailDomainValid(email) &&
                      password == confirmPassword && 
                      password.length >= 6 &&
                      agreeToTerms
@@ -91,17 +103,17 @@ fun SignUpScreen(
     Box(
         modifier = modifier.fillMaxSize()
     ) {
-        // Animated background gradient
+        // Animated background gradient — matching Login screen theme
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            GradientGreenStart,
-                            GradientGreenEnd,
-                            VibrantTeal,
-                            VibrantBlue
+                            GradientStart,
+                            GradientEnd,
+                            GradientOrangeStart,
+                            GradientOrangeEnd
                         )
                     )
                 )
@@ -116,7 +128,7 @@ fun SignUpScreen(
                     y = (80 + floatAnimation * 20).dp
                 )
                 .background(
-                    color = VibrantOrange.copy(alpha = 0.3f),
+                    color = VibrantYellow.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(60)
                 )
         )
@@ -129,8 +141,21 @@ fun SignUpScreen(
                     y = (250 + floatAnimation * -20).dp
                 )
                 .background(
-                    color = VibrantPurple.copy(alpha = 0.3f),
+                    color = VibrantPink.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(45)
+                )
+        )
+
+        Box(
+            modifier = Modifier
+                .size(70.dp)
+                .offset(
+                    x = (200 + floatAnimation * 10).dp,
+                    y = (650 + floatAnimation * -15).dp
+                )
+                .background(
+                    color = VibrantPurple.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(35)
                 )
         )
 
@@ -144,29 +169,37 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(40.dp))
+
+            // College name at the top — matching Login screen
+            Text(
+                text = "Sri Ramakrishna College of Arts & Science",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
             
-            // App logo/title
+            // College logo
             Card(
                 modifier = Modifier
-                    .size(100.dp)
-                    .shadow(20.dp, RoundedCornerShape(50)),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(50)
+                    .size(150.dp)
+                    .shadow(20.dp, RoundedCornerShape(24.dp)),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "EN",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = VibrantGreen
-                    )
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.clg),
+                    contentDescription = "SRCAS Shield Logo",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    contentScale = ContentScale.Fit
+                )
             }
-            
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             Text(
                 text = "Join Our Community!",
@@ -185,38 +218,6 @@ fun SignUpScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-            // Character/avatar above the sign-up form
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(40.dp))
-                    .background(VibrantGreen)
-                    .align(Alignment.CenterHorizontally),
-                contentAlignment = Alignment.Center
-            ) {
-                val avatarLetter = when {
-                    name.isNotBlank() -> name.take(1).uppercase()
-                    email.isNotBlank() -> email.take(1).uppercase()
-                    else -> ""
-                }
-                if (avatarLetter.isNotBlank()) {
-                    Text(
-                        text = avatarLetter,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 36.sp
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Avatar",
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            
             // Sign up form card
             Card(
                 modifier = Modifier
@@ -234,8 +235,38 @@ fun SignUpScreen(
                         fontWeight = FontWeight.Bold,
                         color = PrimaryText
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Domain restriction notice
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = VibrantBlue.copy(alpha = 0.08f)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = VibrantBlue,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Only @srcas.ac.in emails are allowed",
+                                color = VibrantBlue,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                     
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
                     
                     // Name field
                     OutlinedTextField(
@@ -249,7 +280,7 @@ fun SignUpScreen(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "Name",
-                                tint = VibrantGreen
+                                tint = VibrantBlue
                             )
                         },
                         singleLine = true,
@@ -258,9 +289,9 @@ fun SignUpScreen(
                             .semantics { contentDescription = "nameField" },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = VibrantGreen,
+                            focusedBorderColor = VibrantBlue,
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                            focusedLabelColor = VibrantGreen,
+                            focusedLabelColor = VibrantBlue,
                             unfocusedLabelColor = PrimaryText,
                             cursorColor = PrimaryText,
                             focusedTextColor = PrimaryText,
@@ -277,12 +308,13 @@ fun SignUpScreen(
                             email = it
                             if (error.isNotEmpty()) error = ""
                         },
-                        label = { Text("Email") },
+                        label = { Text("College Email") },
+                        placeholder = { Text("yourname@srcas.ac.in") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Email,
                                 contentDescription = "Email",
-                                tint = VibrantGreen
+                                tint = VibrantBlue
                             )
                         },
                         singleLine = true,
@@ -293,16 +325,21 @@ fun SignUpScreen(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next
                         ),
-                        isError = email.isNotBlank() && !isEmailValid(email),
+                        isError = email.isNotBlank() && (!isEmailValid(email) || !isEmailDomainValid(email)),
                         supportingText = {
-                            if (email.isNotBlank() && !isEmailValid(email)) {
-                                Text("Invalid email format", color = VibrantRed)
+                            when {
+                                email.isNotBlank() && !isEmailValid(email) -> {
+                                    Text("Invalid email format", color = VibrantRed)
+                                }
+                                email.isNotBlank() && isEmailValid(email) && !isEmailDomainValid(email) -> {
+                                    Text("Only @srcas.ac.in emails are allowed", color = VibrantRed)
+                                }
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = VibrantGreen,
+                            focusedBorderColor = VibrantBlue,
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                            focusedLabelColor = VibrantGreen,
+                            focusedLabelColor = VibrantBlue,
                             unfocusedLabelColor = Color.Black,
                             cursorColor = Color.Black,
                             focusedTextColor = Color.Black,
@@ -324,7 +361,7 @@ fun SignUpScreen(
                             Icon(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = "Password",
-                                tint = VibrantGreen
+                                tint = VibrantBlue
                             )
                         },
                         singleLine = true,
@@ -333,7 +370,7 @@ fun SignUpScreen(
                             val icon = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
                             val desc = if (passwordVisible) "Hide password" else "Show password"
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(imageVector = icon, contentDescription = desc, tint = VibrantGreen)
+                                Icon(imageVector = icon, contentDescription = desc, tint = VibrantBlue)
                             }
                         },
                         modifier = Modifier
@@ -350,9 +387,9 @@ fun SignUpScreen(
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = VibrantGreen,
+                            focusedBorderColor = VibrantBlue,
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                            focusedLabelColor = VibrantGreen,
+                            focusedLabelColor = VibrantBlue,
                             unfocusedLabelColor = Color.Black,
                             cursorColor = Color.Black,
                             focusedTextColor = Color.Black,
@@ -374,7 +411,7 @@ fun SignUpScreen(
                             Icon(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = "Confirm Password",
-                                tint = VibrantGreen
+                                tint = VibrantBlue
                             )
                         },
                         singleLine = true,
@@ -383,7 +420,7 @@ fun SignUpScreen(
                             val icon = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
                             val desc = if (confirmPasswordVisible) "Hide password" else "Show password"
                             IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                                Icon(imageVector = icon, contentDescription = desc, tint = VibrantGreen)
+                                Icon(imageVector = icon, contentDescription = desc, tint = VibrantBlue)
                             }
                         },
                         modifier = Modifier
@@ -400,13 +437,13 @@ fun SignUpScreen(
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = VibrantGreen,
+                            focusedBorderColor = VibrantBlue,
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                            focusedLabelColor = VibrantGreen,
+                            focusedLabelColor = VibrantBlue,
                             unfocusedLabelColor = Color.Black,
                             cursorColor = Color.Black,
                             focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black // <-- dark color for confirm password
+                            unfocusedTextColor = Color.Black
                         )
                     )
                     
@@ -422,7 +459,7 @@ fun SignUpScreen(
                             onCheckedChange = { agreeToTerms = it },
                             modifier = Modifier.semantics { contentDescription = "agreeToTermsCheckbox" },
                             colors = CheckboxDefaults.colors(
-                                checkedColor = VibrantGreen,
+                                checkedColor = VibrantBlue,
                                 uncheckedColor = Color.Gray
                             )
                         )
@@ -451,20 +488,18 @@ fun SignUpScreen(
                             if (isFormValid) {
                                 loading = true
                                 error = ""
-                                println("DEBUG: Attempting signup with email: $email")
                                 auth.createUserWithEmailAndPassword(email, password)
                                     .addOnCompleteListener { task ->
                                         loading = false
                                         if (task.isSuccessful) {
-                                            println("DEBUG: Signup successful")
                                             onSignUpClick(name, email, password, agreeToTerms)
                                         } else {
-                                            println("DEBUG: Signup failed: ${task.exception?.message}")
                                             error = task.exception?.localizedMessage ?: "Sign up failed."
                                         }
                                     }
+                            } else if (email.isNotBlank() && !isEmailDomainValid(email)) {
+                                error = "Only @srcas.ac.in emails are allowed."
                             } else {
-                                println("DEBUG: Form validation failed")
                                 error = "Please fill all fields correctly and agree to terms."
                             }
                         },
@@ -474,7 +509,7 @@ fun SignUpScreen(
                             .semantics { contentDescription = "signUpButton" },
                         enabled = isFormValid && !loading,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = VibrantGreen,
+                            containerColor = VibrantBlue,
                             disabledContainerColor = Color.Gray
                         ),
                         shape = RoundedCornerShape(16.dp)
@@ -493,8 +528,82 @@ fun SignUpScreen(
                             )
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(24.dp))
+
+                    // Divider
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(1.dp)
+                                .background(Color.Gray.copy(alpha = 0.3f))
+                        )
+                        Text(
+                            "OR",
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = SecondaryText,
+                            fontSize = 14.sp
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(1.dp)
+                                .background(Color.Gray.copy(alpha = 0.3f))
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Google Sign-Up button
+                    OutlinedButton(
+                        onClick = { onGoogleSignUp?.invoke() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                            .semantics { contentDescription = "googleSignUpButton" },
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.5.dp, Color.Gray.copy(alpha = 0.4f)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.White,
+                            contentColor = PrimaryText
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_google),
+                                contentDescription = "Google",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Sign up with Google",
+                                color = PrimaryText,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 15.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Google domain hint
+                    Text(
+                        text = "Use your @srcas.ac.in Google account",
+                        color = SecondaryText,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    Spacer(modifier = Modifier.height(28.dp))
                     
                     // Back to login link
                     Row(
@@ -504,37 +613,18 @@ fun SignUpScreen(
                         Text(
                             "Already have an account? ",
                             color = SecondaryText,
-                            fontSize = 14.sp
+                            fontSize = 16.sp
                         )
                         Text(
                             text = "Login",
-                            color = VibrantGreen,
+                            color = VibrantBlue,
                             textDecoration = TextDecoration.Underline,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
+                            fontSize = 18.sp,
                             modifier = Modifier
                                 .clickable { onBackToLogin?.invoke() }
                                 .semantics { contentDescription = "backToLogin" }
                         )
-                    }
-
-                    // Add Sign In button below the login link
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        OutlinedButton(
-                            onClick = { onBackToLogin?.invoke() },
-                            modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(48.dp)
-                                .semantics { contentDescription = "signInButton" },
-                            shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, VibrantGreen),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = VibrantGreen)
-                        ) {
-                            Text("Sign In", fontWeight = FontWeight.Bold, color = VibrantGreen)
-                        }
                     }
                 }
             }

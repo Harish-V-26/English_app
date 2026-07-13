@@ -1,107 +1,41 @@
 {
   "project_info": {
-    "project_number": "601582889258",
-    "project_id": "english-firebase-a38bd",
-    "storage_bucket": "english-firebase-a38bd.firebasestorage.app"
+    "project_number": "331963078820",
+    "project_id": "english-learn-app-66aac",
+    "storage_bucket": "english-learn-app-66aac.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:601582889258:android:144b5a1ced42ef81f6d653",
+        "mobilesdk_app_id": "1:331963078820:android:67bd3e3053662025446e31",
         "android_client_info": {
-          "package_name": "com.englishlearningapp"
+          "package_name": "English.Learn.App"
         }
       },
       "oauth_client": [
         {
-          "client_id": "601582889258-h4s83eo5pj4tn9sajpe9cgdrgobp6gta.apps.googleusercontent.com",
+          "client_id": "331963078820-su0cr1s37v9vlaphfp5djse597tm91bc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.englishlearningapp",
-            "certificate_hash": "94f99122290fc27bd5e9390d78ed7f69924718f6"
+            "package_name": "English.Learn.App",
+            "certificate_hash": "7192f09ad9cce70383a6c0e002884f5293ab1561"
           }
         },
         {
-          "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
+          "client_id": "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA7P3RP9_kcBKQAC03y2Mw9LIY_T4LMiZ8"
+          "current_key": "AIzaSyBRs2I8B5rRQSDpAllhOE_zC8upjGXcPcY"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:601582889258:android:ca40082e6037f98cf6d653",
-        "android_client_info": {
-          "package_name": "com.example.english_app"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyA7P3RP9_kcBKQAC03y2Mw9LIY_T4LMiZ8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:601582889258:android:47bbda5374210b5ef6d653",
-        "android_client_info": {
-          "package_name": "com.example.englishlearningapp"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "601582889258-ofcj6hvmsakkt70mojb1o4dm5atoeks3.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.englishlearningapp",
-            "certificate_hash": "94f99122290fc27bd5e9390d78ed7f69924718f6"
-          }
-        },
-        {
-          "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyA7P3RP9_kcBKQAC03y2Mw9LIY_T4LMiZ8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
+              "client_id": "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

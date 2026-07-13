@@ -47,6 +47,7 @@ import com.example.english_app.ui.QuizHubScreen
 import com.example.english_app.ui.QuizScreen
 import com.example.english_app.ui.PilotTestScreen
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.ui.graphics.Color
 
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
@@ -56,7 +57,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val webClientId = "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com"
+        val webClientId = "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com"
 
         // Google Sign-In setup — request idToken so we can sign into Firebase Auth
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -73,6 +74,20 @@ class MainActivity : ComponentActivity() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account: GoogleSignInAccount = task.getResult(ApiException::class.java)
+                val accountEmail = account.email ?: ""
+
+                // Domain restriction check
+                if (!accountEmail.lowercase().endsWith(ALLOWED_EMAIL_DOMAIN)) {
+                    // Sign out from Google so user can pick a different account next time
+                    googleSignInClient.signOut()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Only $ALLOWED_EMAIL_DOMAIN emails are allowed. Please use your college email.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@registerForActivityResult
+                }
+
                 // Sign into Firebase Auth with the Google credential
                 val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(account.idToken, null)
                 FirebaseAuth.getInstance().signInWithCredential(credential)
@@ -119,11 +134,14 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    containerColor = Color.Transparent
+                ) { innerPadding ->
                     NavHost(
                         navController = navController,
                         startDestination = "login",
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier
                     ) {
                         composable(
                             route = "login",
@@ -146,16 +164,13 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onGoogleLogin = {
                                     try {
-                                        val signInIntent = googleSignInClient.signInIntent
-                                        googleSignInLauncher.launch(signInIntent)
+                                        // Sign out first so user can pick account
+                                        googleSignInClient.signOut().addOnCompleteListener {
+                                            val signInIntent = googleSignInClient.signInIntent
+                                            googleSignInLauncher.launch(signInIntent)
+                                        }
                                     } catch (e: Exception) {
                                         Toast.makeText(this@MainActivity, "Error launching Google Sign-In: ${e.message}", Toast.LENGTH_LONG).show()
-                                    }
-                                },
-                                onFacebookLogin = {
-                                    // TODO: Implement Facebook Login
-                                    navController.navigate("home") {
-                                        popUpTo("login") { inclusive = true }
                                     }
                                 }
                             )
@@ -175,6 +190,17 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onBackToLogin = {
                                     navController.navigateUp()
+                                },
+                                onGoogleSignUp = {
+                                    try {
+                                        // Sign out first so user can pick account
+                                        googleSignInClient.signOut().addOnCompleteListener {
+                                            val signInIntent = googleSignInClient.signInIntent
+                                            googleSignInLauncher.launch(signInIntent)
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(this@MainActivity, "Error launching Google Sign-In: ${e.message}", Toast.LENGTH_LONG).show()
+                                    }
                                 }
                             )
                         }
@@ -334,6 +360,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         var googleAccountInfoState = mutableStateOf<GoogleSignInAccount?>(null)
+        private const val ALLOWED_EMAIL_DOMAIN = "@srcas.ac.in"
     }
 }
 
