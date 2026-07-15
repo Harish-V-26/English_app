@@ -326,7 +326,7 @@ fun CarouselScreen(
                 Text(
                     text = "💡 Swipe left/right or use buttons to navigate",
                     fontSize = 12.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -364,7 +364,7 @@ fun TypewriterText(
     text: String,
     fontSize: androidx.compose.ui.unit.TextUnit,
     fontWeight: FontWeight? = null,
-    color: Color = Color.Black,
+    color: Color = MaterialTheme.colorScheme.onSurface,
     lineHeight: androidx.compose.ui.unit.TextUnit? = null,
     fontStyle: FontStyle? = null,
     key: String
@@ -412,7 +412,7 @@ fun WordCard(
             .padding(8.dp)
             .shadow(12.dp, RoundedCornerShape(20.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(20.dp)
     ) {
@@ -470,7 +470,7 @@ fun WordCard(
                                     text = word.word,
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.Black,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     key = "word-${word.word}"
                                 )
                             } else {
@@ -478,7 +478,7 @@ fun WordCard(
                                     text = word.word,
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
@@ -510,7 +510,7 @@ fun WordCard(
                     Text(
                         text = word.pronunciation,
                         fontSize = 16.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontStyle = FontStyle.Italic,
                         modifier = Modifier
                             .padding(start = 2.dp, top = 2.dp, bottom = 8.dp)
@@ -520,7 +520,7 @@ fun WordCard(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF5F5F5)
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -536,7 +536,7 @@ fun WordCard(
                                     text = "Definition",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 IconButton(
                                     onClick = { onSpeakWord(word.definition) },
@@ -555,7 +555,7 @@ fun WordCard(
                                 TypewriterText(
                                     text = word.definition,
                                     fontSize = 16.sp,
-                                    color = Color.Black,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     lineHeight = 24.sp,
                                     key = "def-${word.word}"
                                 )
@@ -563,7 +563,7 @@ fun WordCard(
                                 Text(
                                     text = word.definition,
                                     fontSize = 16.sp,
-                                    color = Color.Black,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     lineHeight = 24.sp,
                                     modifier = Modifier
                                 )
@@ -575,7 +575,7 @@ fun WordCard(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFE3F2FD)
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -591,7 +591,7 @@ fun WordCard(
                                     text = "Example",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1976D2)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                                 IconButton(
                                     onClick = { onSpeakWord(word.example) },
@@ -610,7 +610,7 @@ fun WordCard(
                                 TypewriterText(
                                     text = word.example,
                                     fontSize = 16.sp,
-                                    color = Color.Black,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     lineHeight = 24.sp,
                                     fontStyle = FontStyle.Italic,
                                     key = "ex-${word.word}"
@@ -619,7 +619,7 @@ fun WordCard(
                                 Text(
                                     text = word.example,
                                     fontSize = 16.sp,
-                                    color = Color.Black,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     lineHeight = 24.sp,
                                     fontStyle = FontStyle.Italic,
                                     modifier = Modifier

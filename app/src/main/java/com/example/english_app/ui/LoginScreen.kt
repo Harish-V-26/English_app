@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,6 +84,8 @@ fun LoginScreen(
     var loading by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
     var rememberMe by remember { mutableStateOf(false) }
+    var isTeacher by remember { mutableStateOf(false) }
+    var secretKey by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val auth = remember { FirebaseAuth.getInstance() }
 
@@ -108,7 +111,7 @@ fun LoginScreen(
         return email.lowercase().endsWith(ALLOWED_DOMAIN)
     }
 
-    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid(email) && isEmailDomainValid(email)
+    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid(email) && isEmailDomainValid(email) && (!isTeacher || secretKey == "srcas@tec#123")
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -202,7 +205,7 @@ fun LoginScreen(
                         .size(150.dp)
                         .shadow(20.dp, RoundedCornerShape(24.dp)),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.clg),
@@ -238,7 +241,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(20.dp, RoundedCornerShape(20)),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(20)
                 ) {
                     Column(
@@ -248,10 +251,79 @@ fun LoginScreen(
                             text = "Login",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = PrimaryText
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
+
+                        // Role Selector
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.Gray.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                                .padding(4.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = { isTeacher = false },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (!isTeacher) VibrantBlue else Color.Transparent,
+                                    contentColor = if (!isTeacher) Color.White else MaterialTheme.colorScheme.onSurface
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = null
+                            ) {
+                                Text("Student", fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = { isTeacher = true },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isTeacher) VibrantBlue else Color.Transparent,
+                                    contentColor = if (isTeacher) Color.White else MaterialTheme.colorScheme.onSurface
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = null
+                            ) {
+                                Text("Teacher", fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        if (isTeacher) {
+                            // Teacher Secret Key field
+                            OutlinedTextField(
+                                value = secretKey,
+                                onValueChange = {
+                                    secretKey = it
+                                    if (error.isNotEmpty()) error = ""
+                                },
+                                label = { Text("Teacher Secret Key") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Security,
+                                        contentDescription = "Secret Key",
+                                        tint = VibrantBlue
+                                    )
+                                },
+                                singleLine = true,
+                                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = VibrantBlue,
+                                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                                    focusedLabelColor = VibrantBlue,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                                    cursorColor = MaterialTheme.colorScheme.primary,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
 
                         // Domain restriction notice
                         Card(
@@ -322,10 +394,10 @@ fun LoginScreen(
                                 focusedBorderColor = VibrantBlue,
                                 unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
                                 focusedLabelColor = VibrantBlue,
-                                unfocusedLabelColor = Color.Black,
-                                cursorColor = Color.Black,
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         
@@ -388,10 +460,10 @@ fun LoginScreen(
                                 focusedBorderColor = VibrantBlue,
                                 unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
                                 focusedLabelColor = VibrantBlue,
-                                unfocusedLabelColor = Color.Black,
-                                cursorColor = Color.Black,
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         
@@ -413,7 +485,7 @@ fun LoginScreen(
                             )
                             Text(
                                 "Remember Me",
-                                color = PrimaryText,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 14.sp
                             )
                             Spacer(modifier = Modifier.weight(1f))
@@ -503,7 +575,7 @@ fun LoginScreen(
                             Text(
                                 "OR",
                                 modifier = Modifier.padding(horizontal = 16.dp),
-                                color = SecondaryText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 14.sp
                             )
                             Box(
@@ -518,7 +590,13 @@ fun LoginScreen(
                         
                         // Google Sign-In button
                         OutlinedButton(
-                            onClick = { onGoogleLogin?.invoke() },
+                            onClick = { 
+                                if (isTeacher && secretKey != "srcas@tec#123") {
+                                    error = "Invalid Teacher Secret Key"
+                                } else {
+                                    onGoogleLogin?.invoke() 
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
@@ -526,8 +604,8 @@ fun LoginScreen(
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.5.dp, Color.Gray.copy(alpha = 0.4f)),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color.White,
-                                contentColor = PrimaryText
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
                             )
                         ) {
                             Row(
@@ -543,7 +621,7 @@ fun LoginScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     "Sign in with Google",
-                                    color = PrimaryText,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 15.sp
                                 )
@@ -555,7 +633,7 @@ fun LoginScreen(
                         // Google domain hint
                         Text(
                             text = "Use your @srcas.ac.in Google account",
-                            color = SecondaryText,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
@@ -570,7 +648,7 @@ fun LoginScreen(
                         ) {
                             Text(
                                 "Don't have an account? ",
-                                color = SecondaryText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 16.sp
                             )
                             Text(

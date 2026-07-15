@@ -77,12 +77,12 @@ fun QuizHubScreen(
                             text = PILOT_TEST_TITLE,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "${pilotTestQuestions.size} fixed questions covering all categories",
                             fontSize = 12.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Icon(
@@ -98,7 +98,7 @@ fun QuizHubScreen(
             Text(
                 text = "Or choose a category to test what you've learned",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -128,12 +128,12 @@ fun QuizHubScreen(
                                     text = category.title,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "${category.words.size} words",
                                     fontSize = 12.sp,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             Icon(
