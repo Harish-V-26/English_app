@@ -110,6 +110,13 @@ fun DashboardScreen(
                         }
                     },
                     actions = {
+                        IconButton(onClick = onNavigateToHome) {
+                            Icon(
+                                imageVector = Icons.Default.Home,
+                                contentDescription = "Home",
+                                tint = Color.White
+                            )
+                        }
                         IconButton(onClick = onLogout) {
                             Icon(
                                 imageVector = Icons.Default.Logout,
