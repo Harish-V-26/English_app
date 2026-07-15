@@ -46,6 +46,8 @@ fun DashboardScreen(
     userEmail: String,
     userPhotoUrl: String?,
     onNavigateToHome: () -> Unit,
+    isTestActive: Boolean = false, // New parameter to check if test is active
+    onTestScheduled: () -> Unit = {}, // Callback for when test is scheduled
     onLogout: () -> Unit,
     onBack: () -> Unit,
     onSettings: () -> Unit,
@@ -131,36 +133,54 @@ fun DashboardScreen(
                 )
             }
         ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // User Profile Section
-                item {
-                    UserProfileSection(userName, userEmail, userPhotoUrl)
+            if (isTestActive) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Access to learning section is blocked during the test.",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Red,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(24.dp)
+                    )
                 }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // User Profile Section
+                    item {
+                        UserProfileSection(userName, userEmail, userPhotoUrl)
+                    }
 
-                // Progress Stats
-                item {
-                    ProgressStats(stats)
-                }
+                    // Progress Stats
+                    item {
+                        ProgressStats(stats)
+                    }
 
-                // Today's Challenge
-                item {
-                    TodaysChallenge(floatingOffset, stats)
-                }
+                    // Today's Challenge
+                    item {
+                        TodaysChallenge(floatingOffset, stats)
+                    }
 
-                // Achievement Badges
-                item {
-                    AchievementBadges(stats)
-                }
+                    // Achievement Badges
+                    item {
+                        AchievementBadges(stats)
+                    }
 
-                // Recent Quiz Activity
-                item {
-                    RecentQuizActivity(stats)
+                    // Recent Quiz Activity
+                    item {
+                        RecentQuizActivity(stats)
+                    }
                 }
             }
         }

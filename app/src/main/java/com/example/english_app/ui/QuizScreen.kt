@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.english_app.data.UserProgressRepository
 import com.example.english_app.ui.theme.*
+import androidx.compose.foundation.BorderStroke
 
 data class QuizQuestion(
     val word: Word,
@@ -96,6 +97,7 @@ fun QuizScreen(
                             total = questions.size
                         )
                         resultSaved = true
+                        // Prevent showing correct answers
                     }
                 }
                 QuizResultView(
@@ -158,13 +160,23 @@ fun QuizScreen(
             question.options.forEachIndexed { index, option ->
                 val isSelected = selectedOption == index
                 val isCorrectOption = index == question.correctIndex
-                val showFeedback = selectedOption != null
 
                 val containerColor = when {
-                    !showFeedback -> Color.White
-                    isCorrectOption -> Color(0xFFC8E6C9)
-                    isSelected && !isCorrectOption -> Color(0xFFFFCDD2)
+                    selectedOption == null -> Color.White
+                    isSelected -> {
+                        if (isCorrectOption) Color(0xFFC8E6C9) // Green for correct selected
+                        else Color(0xFFFFCDD2) // Red for incorrect selected
+                    }
                     else -> Color.White
+                }
+
+                val borderStroke = when {
+                    selectedOption == null -> null
+                    isSelected -> {
+                        if (isCorrectOption) BorderStroke(2.dp, Color(0xFF388E3C))
+                        else BorderStroke(2.dp, Color(0xFFD32F2F))
+                    }
+                    else -> null
                 }
 
                 Card(
@@ -172,6 +184,7 @@ fun QuizScreen(
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
                     colors = CardDefaults.cardColors(containerColor = containerColor),
+                    border = borderStroke,
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     onClick = {
@@ -185,15 +198,6 @@ fun QuizScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (showFeedback && isCorrectOption) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Correct",
-                                tint = Color(0xFF388E3C),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
                         Text(text = option, fontSize = 15.sp, color = Color.Black)
                     }
                 }
