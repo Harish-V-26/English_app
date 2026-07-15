@@ -166,19 +166,12 @@ fun QuizScreen(
                 val isCorrectOption = index == question.correctIndex
 
                 val containerColor = when {
-<<<<<<< HEAD
                     selectedOption == null -> Color.White
                     isSelected -> {
                         if (isCorrectOption) Color(0xFFC8E6C9) // Green for correct selected
                         else Color(0xFFFFCDD2) // Red for incorrect selected
                     }
                     else -> Color.White
-=======
-                    !showFeedback -> MaterialTheme.colorScheme.surface
-                    isCorrectOption -> Color(0xFFC8E6C9)
-                    isSelected && !isCorrectOption -> Color(0xFFFFCDD2)
-                    else -> MaterialTheme.colorScheme.surface
->>>>>>> ac352a6298f100491e493eb8c9a56b804373d89b
                 }
 
                 val borderStroke = when {
@@ -217,20 +210,7 @@ fun QuizScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-<<<<<<< HEAD
                         Text(text = option, fontSize = 15.sp, color = Color.Black)
-=======
-                        if (showFeedback && isCorrectOption) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Correct",
-                                tint = Color(0xFF388E3C),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                        Text(text = option, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
->>>>>>> ac352a6298f100491e493eb8c9a56b804373d89b
                     }
                 }
             }

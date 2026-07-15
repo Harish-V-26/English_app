@@ -190,11 +190,11 @@ fun DashboardScreen(
                     item {
                         RecentQuizActivity(stats)
                     }
-                }
 
-                // Test Analyzer
-                item {
-                    TestAnalyzerSection(detailedResults)
+                    // Test Analyzer
+                    item {
+                        TestAnalyzerSection(detailedResults)
+                    }
                 }
             }
         }
