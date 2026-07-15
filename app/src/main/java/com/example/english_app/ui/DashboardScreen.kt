@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import kotlinx.coroutines.launch
 import com.example.english_app.data.UserProgressRepository
 import com.example.english_app.data.DashboardStats
+import com.example.english_app.data.DetailedQuizResult
+import com.example.english_app.data.QuizAnswerDetail
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +54,7 @@ fun DashboardScreen(
     onContact: () -> Unit
 ) {
     var stats by remember { mutableStateOf(DashboardStats()) }
+    var detailedResults by remember { mutableStateOf<List<DetailedQuizResult>>(emptyList()) }
 
     DisposableEffect(Unit) {
         val listener = UserProgressRepository.observeDashboardStats { loaded ->
@@ -59,6 +62,12 @@ fun DashboardScreen(
         }
         onDispose {
             listener.remove()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        UserProgressRepository.loadDetailedQuizResults { results ->
+            detailedResults = results
         }
     }
 
@@ -110,6 +119,13 @@ fun DashboardScreen(
                         }
                     },
                     actions = {
+                        IconButton(onClick = onNavigateToHome) {
+                            Icon(
+                                imageVector = Icons.Default.Home,
+                                contentDescription = "Home",
+                                tint = Color.White
+                            )
+                        }
                         IconButton(onClick = onLogout) {
                             Icon(
                                 imageVector = Icons.Default.Logout,
@@ -154,6 +170,11 @@ fun DashboardScreen(
                 // Recent Quiz Activity
                 item {
                     RecentQuizActivity(stats)
+                }
+
+                // Test Analyzer
+                item {
+                    TestAnalyzerSection(detailedResults)
                 }
             }
         }
@@ -272,7 +293,7 @@ fun RecentQuizActivity(stats: DashboardStats) {
     if (stats.quizzesTaken == 0) return
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -320,8 +341,8 @@ fun ActivityItem(title: String, subtitle: String, icon: String) {
         Text(text = icon, fontSize = 16.sp)
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            Text(text = subtitle, fontSize = 12.sp, color = Color.Gray)
+            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -353,7 +374,7 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -392,12 +413,12 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
                     text = "Welcome back, $userName!",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = userEmail,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -414,7 +435,7 @@ fun ProgressStats(stats: DashboardStats) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -455,13 +476,13 @@ fun ProgressStat(title: String, current: String, total: String, progress: Float,
         Text(
             text = title,
             fontSize = 12.sp,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = "$current/$total",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(4.dp))
         LinearProgressIndicator(
@@ -480,7 +501,7 @@ fun QuickActions(onNavigateToHome: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -589,20 +610,20 @@ fun WordOfTheDay() {
                 text = "Serendipity",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Text(
                 text = "The occurrence of events by chance in a happy or beneficial way.",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
             
             Text(
                 text = "Example: Finding the book was pure serendipity.",
                 fontSize = 13.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             )
         }
@@ -633,7 +654,175 @@ fun ProgressPieChart(progress: Float, color: Color, label: String) {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("${(progress * 100).toInt()}%", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = color)
-            Text(label, fontSize = 14.sp, color = Color.Gray)
+            Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+fun TestAnalyzerSection(results: List<DetailedQuizResult>) {
+    if (results.isEmpty()) return
+    Column {
+        Text(
+            text = "🔬 Test Analyzer",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        results.forEach { result ->
+            TestAnalyzerItem(result)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun TestAnalyzerItem(result: DetailedQuizResult) {
+    var expanded by remember { mutableStateOf(false) }
+    val percent = if (result.total > 0) (result.score * 100 / result.total) else 0
+    val dateStr = remember(result.timestamp) {
+        val sdf = java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault())
+        sdf.format(java.util.Date(result.timestamp))
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = result.categoryTitle,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = dateStr,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                // Score badge
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (percent >= 70) Color(0xFFC8E6C9) else if (percent >= 40) Color(0xFFFFF9C4) else Color(0xFFFFCDD2)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "${result.score}/${result.total} ($percent%)",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (percent >= 70) Color(0xFF2E7D32) else if (percent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+
+            // Expanded detail view
+            if (expanded && result.answers.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Summary bar
+                val correctCount = result.answers.count { it.isCorrect }
+                val wrongCount = result.answers.size - correctCount
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Correct",
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("$correctCount Correct", fontSize = 13.sp, color = Color(0xFF4CAF50), fontWeight = FontWeight.Medium)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Cancel,
+                            contentDescription = "Wrong",
+                            tint = Color(0xFFF44336),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("$wrongCount Wrong", fontSize = 13.sp, color = Color(0xFFF44336), fontWeight = FontWeight.Medium)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                result.answers.forEachIndexed { index, answer ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(
+                                color = if (answer.isCorrect) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Icon(
+                            imageVector = if (answer.isCorrect) Icons.Default.CheckCircle else Icons.Default.Cancel,
+                            contentDescription = if (answer.isCorrect) "Correct" else "Wrong",
+                            tint = if (answer.isCorrect) Color(0xFF4CAF50) else Color(0xFFF44336),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Q${index + 1}: ${answer.word}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                            Text(
+                                text = "Your answer: ${answer.userAnswer}",
+                                fontSize = 12.sp,
+                                color = if (answer.isCorrect) Color(0xFF2E7D32) else Color(0xFFC62828)
+                            )
+                            if (!answer.isCorrect) {
+                                Text(
+                                    text = "Correct: ${answer.correctAnswer}",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF2E7D32),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
+            } else if (expanded && result.answers.isEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Detailed breakdown not available for this older test.",
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            }
         }
     }
 }

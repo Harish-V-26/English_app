@@ -151,11 +151,13 @@ fun HomeScreen(
     onLogin: () -> Unit = {},
     onLogout: () -> Unit = {},
     onQuiz: () -> Unit = {},
+    onAdminPanel: () -> Unit = {},
     darkTheme: Boolean,
     onToggleTheme: () -> Unit,
     userName: String = "User",
     userPhotoUrl: String? = null,
-    isLoggedIn: Boolean = false
+    isLoggedIn: Boolean = false,
+    isAdmin: Boolean = false
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -249,6 +251,17 @@ fun HomeScreen(
                     },
                     icon = { Icon(Icons.Default.Info, contentDescription = "Contact") }
                 )
+                if (isAdmin) {
+                    NavigationDrawerItem(
+                        label = { Text("Admin Panel") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            onAdminPanel()
+                        },
+                        icon = { Icon(Icons.Default.Security, contentDescription = "Admin Panel") }
+                    )
+                }
                 if (isLoggedIn) {
                     NavigationDrawerItem(
                         label = { Text("Logout") },
@@ -285,21 +298,21 @@ fun HomeScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Vocabulary Explorer", color = Color.White) },
+                    title = { Text("Vocabulary Explorer", color = if (darkTheme) MaterialTheme.colorScheme.onSurface else Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { 
                             scope.launch { drawerState.open() }
                         }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = if (darkTheme) MaterialTheme.colorScheme.onSurface else Color.White)
                         }
                     },
                     actions = {
                         IconButton(onClick = onDashboard) {
-                            Icon(Icons.Default.Dashboard, contentDescription = "Dashboard", tint = Color.White)
+                            Icon(Icons.Default.Dashboard, contentDescription = "Dashboard", tint = if (darkTheme) MaterialTheme.colorScheme.onSurface else Color.White)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = VibrantGreen
+                        containerColor = if (darkTheme) MaterialTheme.colorScheme.surface else VibrantGreen
                     )
                 )
             }
@@ -314,7 +327,7 @@ fun HomeScreen(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search categories...", color = Color.Gray) },
+                    placeholder = { Text("Search categories...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -326,9 +339,9 @@ fun HomeScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = VibrantGreen,
                         unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        cursorColor = Color.Black
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     ),
                     singleLine = true
                 )
@@ -403,7 +416,7 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = "No categories found",
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
                     }
@@ -425,7 +438,7 @@ fun EnhancedCategoryCard(
             .clickable { onCategorySelected(category) }
             .shadow(8.dp, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -465,7 +478,7 @@ fun EnhancedCategoryCard(
                         text = category.title,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
@@ -483,7 +496,7 @@ fun EnhancedCategoryCard(
                 Text(
                     text = category.description,
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 Row(
@@ -493,7 +506,7 @@ fun EnhancedCategoryCard(
                     Text(
                         text = "${category.words.size} words",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -547,7 +560,7 @@ fun ProgressCard(
             Text(
                 text = "/ $total",
                 fontSize = 10.sp,
-                color = SecondaryText
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -605,7 +618,7 @@ fun CategoryCard(
             Text(
                 text = category.description,
                 fontSize = 12.sp,
-                color = PrimaryText,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
         }
@@ -630,7 +643,7 @@ fun LearningModuleCard(
             .width(160.dp)
             .height(120.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -652,13 +665,13 @@ fun LearningModuleCard(
                 text = module.title,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
-                color = PrimaryText,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
             Text(
                 text = module.description,
                 fontSize = 10.sp,
-                color = SecondaryText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }

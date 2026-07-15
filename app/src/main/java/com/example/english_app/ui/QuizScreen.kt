@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.english_app.data.UserProgressRepository
+import com.example.english_app.data.QuizAnswerDetail
 import com.example.english_app.ui.theme.*
 
 data class QuizQuestion(
@@ -55,6 +56,7 @@ fun QuizScreen(
     var score by remember(category.id) { mutableIntStateOf(0) }
     var isFinished by remember(category.id) { mutableStateOf(false) }
     var resultSaved by remember(category.id) { mutableStateOf(false) }
+    val userAnswers = remember(category.id) { mutableListOf<QuizAnswerDetail>() }
 
     Scaffold(
         topBar = {
@@ -93,7 +95,8 @@ fun QuizScreen(
                             categoryId = category.id,
                             categoryTitle = category.title,
                             score = score,
-                            total = questions.size
+                            total = questions.size,
+                            answers = userAnswers.toList()
                         )
                         resultSaved = true
                     }
@@ -108,6 +111,7 @@ fun QuizScreen(
                         score = 0
                         selectedOption = null
                         isFinished = false
+                        userAnswers.clear()
                         resultSaved = false
                     },
                     onBack = onBack
@@ -127,7 +131,7 @@ fun QuizScreen(
             Text(
                 text = "Question ${currentIndex + 1} of ${questions.size}",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -141,14 +145,14 @@ fun QuizScreen(
                     Text(
                         text = "What does this word mean?",
                         fontSize = 13.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = question.word.word,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -161,10 +165,10 @@ fun QuizScreen(
                 val showFeedback = selectedOption != null
 
                 val containerColor = when {
-                    !showFeedback -> Color.White
+                    !showFeedback -> MaterialTheme.colorScheme.surface
                     isCorrectOption -> Color(0xFFC8E6C9)
                     isSelected && !isCorrectOption -> Color(0xFFFFCDD2)
-                    else -> Color.White
+                    else -> MaterialTheme.colorScheme.surface
                 }
 
                 Card(
@@ -178,6 +182,14 @@ fun QuizScreen(
                         if (selectedOption == null) {
                             selectedOption = index
                             if (isCorrectOption) score++
+                            userAnswers.add(
+                                QuizAnswerDetail(
+                                    word = question.word.word,
+                                    correctAnswer = question.options[question.correctIndex],
+                                    userAnswer = option,
+                                    isCorrect = isCorrectOption
+                                )
+                            )
                         }
                     }
                 ) {
@@ -194,7 +206,7 @@ fun QuizScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
-                        Text(text = option, fontSize = 15.sp, color = Color.Black)
+                        Text(text = option, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -253,12 +265,13 @@ fun QuizResultView(
             text = "You scored $score / $total",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = "$percent% correct",
             fontSize = 16.sp,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(

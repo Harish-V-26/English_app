@@ -7,10 +7,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,6 +22,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import android.content.Context
 import android.content.SharedPreferences
+import coil.compose.AsyncImage
+import com.example.english_app.data.UserProgressRepository
+import com.example.english_app.data.UserProfile
+import com.google.firebase.auth.FirebaseAuth
 
 // Data class for animation settings
 data class AnimationSettings(
@@ -34,7 +40,13 @@ fun SettingsScreen(
     darkTheme: Boolean, 
     onToggleTheme: () -> Unit,
     animationSettings: AnimationSettings = AnimationSettings(),
-    onAnimationSettingsChange: (AnimationSettings) -> Unit = {}
+    onAnimationSettingsChange: (AnimationSettings) -> Unit = {},
+    userName: String = "User",
+    userEmail: String = "",
+    userPhotoUrl: String? = null,
+    onSignOut: () -> Unit = {},
+    fontSizeScale: Float = 1.0f,
+    onFontSizeChange: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("animation_settings", Context.MODE_PRIVATE) }
@@ -44,6 +56,15 @@ fun SettingsScreen(
     }
     var animationStyle by remember { 
         mutableIntStateOf(prefs.getInt("animation_style", 0)) 
+    }
+    var currentFontScale by remember { mutableFloatStateOf(fontSizeScale) }
+
+    // Load user profile
+    var userProfile by remember { mutableStateOf(UserProfile()) }
+    LaunchedEffect(Unit) {
+        UserProgressRepository.loadUserProfile { profile ->
+            userProfile = profile
+        }
     }
     
     // Save settings when they change
@@ -59,18 +80,18 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings", color = Color.White) },
+                title = { Text("Settings", color = if (darkTheme) MaterialTheme.colorScheme.onSurface else Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = if (darkTheme) MaterialTheme.colorScheme.onSurface else Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = VibrantGreen
+                    containerColor = if (darkTheme) MaterialTheme.colorScheme.surface else VibrantGreen
                 )
             )
         }
@@ -83,7 +104,57 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Text("Settings", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.Black)
+                Text("Settings", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
+            }
+
+            // Profile Section
+            item {
+                SettingsSection(title = "Profile") {
+                    ProfileCard(
+                        userName = userName,
+                        userEmail = userEmail,
+                        userPhotoUrl = userPhotoUrl,
+                        department = userProfile.department,
+                        rollNo = userProfile.rollNo
+                    )
+                    
+                    var editDepartment by remember(userProfile.department) { mutableStateOf(userProfile.department) }
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = editDepartment,
+                            onValueChange = { editDepartment = it },
+                            label = { Text("Update Department") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = VibrantGreen,
+                                focusedLabelColor = VibrantGreen
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                UserProgressRepository.saveUserProfile(
+                                    name = userProfile.name,
+                                    rollNo = userProfile.rollNo,
+                                    department = editDepartment,
+                                    role = userProfile.role,
+                                    email = userProfile.email
+                                )
+                                userProfile = userProfile.copy(department = editDepartment)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = VibrantGreen)
+                        ) {
+                            Text("Save", color = Color.White)
+                        }
+                    }
+                }
             }
             
             item {
@@ -100,6 +171,69 @@ fun SettingsScreen(
                                 checkedThumbColor = VibrantGreen,
                                 checkedTrackColor = VibrantGreen.copy(alpha = 0.5f)
                             )
+                        )
+                    }
+
+                    HorizontalDivider(color = Color.Gray.copy(alpha = 0.1f))
+
+                    // Font Size Adjustment
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FormatSize,
+                                contentDescription = "Font Size",
+                                tint = VibrantGreen,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Font Size",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Adjust app text size (${(currentFontScale * 100).toInt()}%)",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("A", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Slider(
+                                value = currentFontScale,
+                                onValueChange = {
+                                    currentFontScale = it
+                                    onFontSizeChange(it)
+                                },
+                                valueRange = 0.8f..1.4f,
+                                steps = 5,
+                                modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                                colors = SliderDefaults.colors(
+                                    thumbColor = VibrantGreen,
+                                    activeTrackColor = VibrantGreen
+                                )
+                            )
+                            Text("A", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        }
+                        // Preview text
+                        Text(
+                            text = "Preview: The quick brown fox jumps over the lazy dog.",
+                            fontSize = (14 * currentFontScale).sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp)
                         )
                     }
                 }
@@ -122,19 +256,45 @@ fun SettingsScreen(
                         )
                     }
                     
-                    SettingsItem(
-                        icon = Icons.Default.Palette,
-                        title = "Animation Style",
-                        subtitle = when (animationStyle) {
-                            0 -> "Slide from sides"
-                            1 -> "Fade in/out"
-                            2 -> "Typewriter effect"
-                            3 -> "Scale animation"
-                            else -> "Slide from sides"
-                        }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Palette,
+                                contentDescription = "Animation Style",
+                                tint = VibrantGreen,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Animation Style",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = when (animationStyle) {
+                                        0 -> "Slide from sides"
+                                        1 -> "Fade in/out"
+                                        2 -> "Typewriter effect"
+                                        3 -> "Scale animation"
+                                        else -> "Slide from sides"
+                                    },
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             listOf("Slide" to 0, "Fade" to 1, "Type" to 2, "Scale" to 3).forEach { (label, value) ->
                                 AssistChip(
@@ -143,7 +303,8 @@ fun SettingsScreen(
                                     colors = AssistChipDefaults.assistChipColors(
                                         containerColor = if (animationStyle == value) 
                                             VibrantGreen.copy(alpha = 0.15f) else Color.Transparent
-                                    )
+                                    ),
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
                         }
@@ -166,6 +327,138 @@ fun SettingsScreen(
                     ) { }
                 }
             }
+
+            // Sign Out Button
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        FirebaseAuth.getInstance().signOut()
+                        onSignOut()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = VibrantRed
+                    ),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = "Sign Out",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Sign Out",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileCard(
+    userName: String,
+    userEmail: String,
+    userPhotoUrl: String?,
+    department: String,
+    rollNo: String
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar
+            Card(
+                modifier = Modifier.size(60.dp),
+                colors = CardDefaults.cardColors(containerColor = VibrantGreen),
+                shape = RoundedCornerShape(30.dp)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (userPhotoUrl != null && userPhotoUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = userPhotoUrl,
+                            contentDescription = "Avatar",
+                            modifier = Modifier.size(60.dp).clip(RoundedCornerShape(30.dp))
+                        )
+                    } else {
+                        Text(
+                            text = userName.take(1).uppercase(),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    text = userName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = userEmail,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        if (department.isNotBlank() || rollNo.isNotBlank()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = Color.Gray.copy(alpha = 0.15f))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (rollNo.isNotBlank()) {
+                Row(
+                    modifier = Modifier.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Roll No",
+                        tint = VibrantBlue,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Roll No: $rollNo", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+            if (department.isNotBlank()) {
+                Row(
+                    modifier = Modifier.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.School,
+                        contentDescription = "Department",
+                        tint = VibrantOrange,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Department: $department", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
         }
     }
 }
@@ -175,7 +468,7 @@ fun UserProfileCard(userName: String, userEmail: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -207,12 +500,12 @@ fun UserProfileCard(userName: String, userEmail: String) {
                     text = userName,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = userEmail,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -226,13 +519,13 @@ fun SettingsSection(title: String, content: @Composable () -> Unit) {
             text = title,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column {
@@ -271,12 +564,12 @@ fun SettingsItem(
                 text = title,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = subtitle,
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         

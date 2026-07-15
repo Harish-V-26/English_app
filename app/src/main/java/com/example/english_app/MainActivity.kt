@@ -46,8 +46,12 @@ import com.example.english_app.ui.ContactScreen
 import com.example.english_app.ui.QuizHubScreen
 import com.example.english_app.ui.QuizScreen
 import com.example.english_app.ui.PilotTestScreen
+import com.example.english_app.ui.AdminPanelScreen
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.mutableFloatStateOf
+import com.example.english_app.data.UserProgressRepository
+import com.example.english_app.data.UserProfile
 
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
@@ -108,6 +112,8 @@ class MainActivity : ComponentActivity() {
             var animationSettings by remember {
                 mutableStateOf(AnimationSettings())
             }
+            var fontSizeScale by remember { mutableFloatStateOf(1.0f) }
+            var userProfile by remember { mutableStateOf(UserProfile()) }
 
             // Load animation settings from SharedPreferences
             LaunchedEffect(Unit) {
@@ -116,13 +122,33 @@ class MainActivity : ComponentActivity() {
                     useRandomDirections = prefs.getBoolean("use_random_directions", true),
                     animationStyle = prefs.getInt("animation_style", 0)
                 )
+                fontSizeScale = prefs.getFloat("font_size_scale", 1.0f)
             }
 
-            ENGLISH_APPTheme(darkTheme = darkTheme) {
+            ENGLISH_APPTheme(
+                darkTheme = darkTheme,
+                fontScale = fontSizeScale
+            ) {
                 val navController = rememberNavController()
                 val googleAccountInfo by googleAccountInfoState
-                val firebaseUser = FirebaseAuth.getInstance().currentUser
+                var firebaseUser by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser) }
+                
+                LaunchedEffect(Unit) {
+                    FirebaseAuth.getInstance().addAuthStateListener { auth ->
+                        firebaseUser = auth.currentUser
+                    }
+                }
+                
                 val isLoggedIn = googleAccountInfo != null || firebaseUser != null
+
+                // Load user profile when logged in
+                LaunchedEffect(isLoggedIn) {
+                    if (isLoggedIn) {
+                        UserProgressRepository.loadUserProfile { profile ->
+                            userProfile = profile
+                        }
+                    }
+                }
 
                 // Handle Google Sign-In result
                 LaunchedEffect(googleAccountInfo) {
@@ -248,15 +274,21 @@ class MainActivity : ComponentActivity() {
                                 onLogin = { navController.navigate("login") },
                                 onQuiz = { navController.navigate("quizHub") },
                                 onLogout = {
+                                    FirebaseAuth.getInstance().signOut()
+                                    googleSignInClient.signOut()
+                                    googleAccountInfoState.value = null
+                                    userProfile = UserProfile()
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
                                     }
                                 },
+                                onAdminPanel = { navController.navigate("adminPanel") },
                                 darkTheme = darkTheme,
                                 onToggleTheme = { darkTheme = !darkTheme },
                                 userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
                                 userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
-                                isLoggedIn = isLoggedIn
+                                isLoggedIn = isLoggedIn,
+                                isAdmin = userProfile.role == "admin"
                             )
                         }
                         composable(
@@ -274,6 +306,8 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("home")
                                 },
                                 onLogout = {
+                                    FirebaseAuth.getInstance().signOut()
+                                    googleSignInClient.signOut()
                                     navController.navigate("login") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -297,6 +331,24 @@ class MainActivity : ComponentActivity() {
                                 animationSettings = animationSettings,
                                 onAnimationSettingsChange = { newSettings ->
                                     animationSettings = newSettings
+                                },
+                                userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
+                                userEmail = googleAccountInfo?.email ?: firebaseUser?.email ?: "",
+                                userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
+                                onSignOut = {
+                                    FirebaseAuth.getInstance().signOut()
+                                    googleSignInClient.signOut()
+                                    googleAccountInfoState.value = null
+                                    userProfile = UserProfile()
+                                    navController.navigate("login") {
+                                        popUpTo("home") { inclusive = true }
+                                    }
+                                },
+                                fontSizeScale = fontSizeScale,
+                                onFontSizeChange = { newScale ->
+                                    fontSizeScale = newScale
+                                    val prefs = getSharedPreferences("animation_settings", Context.MODE_PRIVATE)
+                                    prefs.edit().putFloat("font_size_scale", newScale).apply()
                                 }
                             )
                         }
@@ -350,6 +402,18 @@ class MainActivity : ComponentActivity() {
                             QuizScreen(
                                 category = quizCategory,
                                 onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable(
+                            route = "adminPanel",
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) {
+                            AdminPanelScreen(
+                                onBack = { navController.popBackStack() },
+                                teacherDepartment = userProfile.department
                             )
                         }
                     }

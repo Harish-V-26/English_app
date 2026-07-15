@@ -31,6 +31,9 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.ui.platform.LocalFocusManager
 import java.util.regex.Pattern
 import androidx.compose.animation.core.*
@@ -46,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import com.example.english_app.R
+import com.example.english_app.data.UserProgressRepository
 
 private const val ALLOWED_DOMAIN = "@srcas.ac.in"
 
@@ -60,6 +64,10 @@ fun SignUpScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var rollNo by remember { mutableStateOf("") }
+    var department by remember { mutableStateOf("") }
+    var secretKey by remember { mutableStateOf("") }
+    var isTeacher by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -94,11 +102,14 @@ fun SignUpScreen(
                      email.isNotBlank() && 
                      password.isNotBlank() && 
                      confirmPassword.isNotBlank() && 
+                     (isTeacher || rollNo.isNotBlank()) &&
+                     department.isNotBlank() &&
                      isEmailValid(email) && 
                      isEmailDomainValid(email) &&
                      password == confirmPassword && 
                      password.length >= 6 &&
-                     agreeToTerms
+                     agreeToTerms &&
+                     (!isTeacher || secretKey == "srcas@tec#123")
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -188,7 +199,7 @@ fun SignUpScreen(
                     .size(150.dp)
                     .shadow(20.dp, RoundedCornerShape(24.dp)),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.clg),
@@ -223,7 +234,7 @@ fun SignUpScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(20.dp, RoundedCornerShape(20)),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(20)
             ) {
                 Column(
@@ -233,7 +244,7 @@ fun SignUpScreen(
                         text = "Sign Up",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = PrimaryText
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -266,6 +277,42 @@ fun SignUpScreen(
                         }
                     }
                     
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Role Selector
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Gray.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(
+                            onClick = { isTeacher = false },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (!isTeacher) VibrantBlue else Color.Transparent,
+                                contentColor = if (!isTeacher) Color.White else MaterialTheme.colorScheme.onSurface
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = null
+                        ) {
+                            Text("Student", fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { isTeacher = true },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isTeacher) VibrantBlue else Color.Transparent,
+                                contentColor = if (isTeacher) Color.White else MaterialTheme.colorScheme.onSurface
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = null
+                        ) {
+                            Text("Teacher", fontWeight = FontWeight.Bold)
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(20.dp))
                     
                     // Name field
@@ -292,13 +339,115 @@ fun SignUpScreen(
                             focusedBorderColor = VibrantBlue,
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
                             focusedLabelColor = VibrantBlue,
-                            unfocusedLabelColor = PrimaryText,
-                            cursorColor = PrimaryText,
-                            focusedTextColor = PrimaryText,
-                            unfocusedTextColor = PrimaryText
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (!isTeacher) {
+                        // Roll No field
+                        OutlinedTextField(
+                            value = rollNo,
+                            onValueChange = {
+                                rollNo = it
+                                if (error.isNotEmpty()) error = ""
+                            },
+                            label = { Text("Roll Number") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.AccountCircle,
+                                    contentDescription = "Roll Number",
+                                    tint = VibrantBlue
+                                )
+                            },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = "rollNoField" },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = VibrantBlue,
+                                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                                focusedLabelColor = VibrantBlue,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                    } else {
+                        // Teacher Secret Key field
+                        OutlinedTextField(
+                            value = secretKey,
+                            onValueChange = {
+                                secretKey = it
+                                if (error.isNotEmpty()) error = ""
+                            },
+                            label = { Text("Teacher Secret Key") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Security,
+                                    contentDescription = "Secret Key",
+                                    tint = VibrantBlue
+                                )
+                            },
+                            singleLine = true,
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = VibrantBlue,
+                                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                                focusedLabelColor = VibrantBlue,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Department field
+                    OutlinedTextField(
+                        value = department,
+                        onValueChange = {
+                            department = it
+                            if (error.isNotEmpty()) error = ""
+                        },
+                        label = { Text("Department") },
+                        placeholder = { Text("e.g. Computer Science") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = "Department",
+                                tint = VibrantBlue
+                            )
+                        },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "departmentField" },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = VibrantBlue,
+                            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                            focusedLabelColor = VibrantBlue,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+
+                    // Space between Department and Email fields
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Email field
@@ -465,7 +614,7 @@ fun SignUpScreen(
                         )
                         Text(
                             "I agree to the Terms and Conditions",
-                            color = PrimaryText,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 14.sp
                         )
                     }
@@ -492,6 +641,14 @@ fun SignUpScreen(
                                     .addOnCompleteListener { task ->
                                         loading = false
                                         if (task.isSuccessful) {
+                                            // Save profile data to Firestore
+                                            UserProgressRepository.saveUserProfile(
+                                                name = name,
+                                                rollNo = rollNo,
+                                                department = department,
+                                                role = if (isTeacher) "admin" else "student",
+                                                email = email
+                                            )
                                             onSignUpClick(name, email, password, agreeToTerms)
                                         } else {
                                             error = task.exception?.localizedMessage ?: "Sign up failed."
@@ -545,7 +702,7 @@ fun SignUpScreen(
                         Text(
                             "OR",
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            color = SecondaryText,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp
                         )
                         Box(
@@ -560,7 +717,13 @@ fun SignUpScreen(
 
                     // Google Sign-Up button
                     OutlinedButton(
-                        onClick = { onGoogleSignUp?.invoke() },
+                        onClick = { 
+                            if (isTeacher && secretKey != "srcas@tec#123") {
+                                error = "Invalid Teacher Secret Key"
+                            } else {
+                                onGoogleSignUp?.invoke() 
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
@@ -568,8 +731,8 @@ fun SignUpScreen(
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.5.dp, Color.Gray.copy(alpha = 0.4f)),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.White,
-                            contentColor = PrimaryText
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
                         )
                     ) {
                         Row(
@@ -585,7 +748,7 @@ fun SignUpScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 "Sign up with Google",
-                                color = PrimaryText,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 15.sp
                             )
@@ -597,7 +760,7 @@ fun SignUpScreen(
                     // Google domain hint
                     Text(
                         text = "Use your @srcas.ac.in Google account",
-                        color = SecondaryText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -612,7 +775,7 @@ fun SignUpScreen(
                     ) {
                         Text(
                             "Already have an account? ",
-                            color = SecondaryText,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
                         Text(

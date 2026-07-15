@@ -88,7 +88,7 @@ fun PilotTestScreen(onBack: () -> Unit) {
             Text(
                 text = "Question ${currentIndex + 1} of ${pilotTestQuestions.size}",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -102,7 +102,7 @@ fun PilotTestScreen(onBack: () -> Unit) {
                     text = question.prompt,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(20.dp)
                 )
             }
@@ -115,10 +115,10 @@ fun PilotTestScreen(onBack: () -> Unit) {
                 val showFeedback = selectedOption != null
 
                 val containerColor = when {
-                    !showFeedback -> Color.White
+                    !showFeedback -> MaterialTheme.colorScheme.surface
                     isCorrectOption -> Color(0xFFC8E6C9)
                     isSelected && !isCorrectOption -> Color(0xFFFFCDD2)
-                    else -> Color.White
+                    else -> MaterialTheme.colorScheme.surface
                 }
 
                 Card(
@@ -148,7 +148,7 @@ fun PilotTestScreen(onBack: () -> Unit) {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
-                        Text(text = option, fontSize = 15.sp, color = Color.Black)
+                        Text(text = option, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }

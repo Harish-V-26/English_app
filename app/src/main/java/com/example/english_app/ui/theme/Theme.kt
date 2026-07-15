@@ -11,6 +11,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.runtime.CompositionLocalProvider
 
 private val DarkColorScheme = darkColorScheme(
     primary = VibrantBlue,
@@ -45,6 +48,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun ENGLISH_APPTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    fontScale: Float = 1.0f,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // Disabled to use our custom vibrant colors
     content: @Composable () -> Unit
@@ -59,9 +63,16 @@ fun ENGLISH_APPTheme(
         else -> LightColorScheme
     }
 
+    val currentDensity = LocalDensity.current
+    val customDensity = Density(density = currentDensity.density, fontScale = currentDensity.fontScale * fontScale)
+
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = {
+            CompositionLocalProvider(LocalDensity provides customDensity) {
+                content()
+            }
+        }
     )
 }
