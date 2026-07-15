@@ -259,15 +259,6 @@ fun CarouselScreen(
                     trackColor = VibrantGreen.copy(alpha = 0.3f)
                 )
                 
-                // Scroll indicator
-                Text(
-                    text = "📜 Scroll to see more content",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
                 // Word card with enhanced features
                 WordCard(
                     word = currentWord,
@@ -281,14 +272,12 @@ fun CarouselScreen(
                         difficultyRating = it
                         UserProgressRepository.setDifficulty(category.id, currentWord.word, it)
                     },
-                    onSpeakWord = {
-                        tts.speak(currentWord.word, TextToSpeech.QUEUE_FLUSH, null, null)
+                    onSpeakWord = { text ->
+                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
                     },
                     categoryId = category.id,
                     useRandomDirections = animationSettings.useRandomDirections,
-                    animationStyle = animationSettings.animationStyle,
-                    showDetails = showDetails,
-                    onShowDetailsChange = { showDetails = it }
+                    animationStyle = animationSettings.animationStyle
                 )
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -409,12 +398,10 @@ fun WordCard(
     onFavoriteToggle: () -> Unit,
     difficultyRating: Int,
     onDifficultyChange: (Int) -> Unit,
-    onSpeakWord: () -> Unit,
+    onSpeakWord: (String) -> Unit,
     categoryId: String,
     useRandomDirections: Boolean,
-    animationStyle: Int,
-    showDetails: Boolean,
-    onShowDetailsChange: (Boolean) -> Unit
+    animationStyle: Int
 ) {
     var directionIndex by remember { mutableIntStateOf(0) }
     var chosenDirection by remember { mutableIntStateOf(0) } // 0: left, 1: right, 2: top, 3: bottom
@@ -436,24 +423,8 @@ fun WordCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(340.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        onShowDetailsChange(!showDetails)
-                        if (useRandomDirections) {
-                            chosenDirection = Random.nextInt(0, 4)
-                        } else {
-                            // Deterministic per-category order
-                            val order = when (categoryId) {
-                                "words1" -> listOf(0, 3, 1, 2) // left, bottom, right, top
-                                "words2" -> listOf(1, 2, 0, 3) // right, top, left, bottom
-                                "words3" -> listOf(2, 0, 3, 1) // top, left, bottom, right
-                                else -> listOf(0, 1, 2, 3)
-                            }
-                            chosenDirection = order[directionIndex]
-                            directionIndex = (directionIndex + 1) % order.size
-                        }
-                    }
             ) {
                 if (word.imageUrl.isBlank()) {
                     // No image assigned yet — show a gray placeholder box
@@ -480,81 +451,11 @@ fun WordCard(
                         contentScale = ContentScale.Crop
                     )
                 }
-                
-                // Click indicator overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = if (showDetails) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = if (showDetails) "Hide details" else "Show details",
-                            tint = Color.White,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        
-                        // Animation type indicator for text
-                        if (showDetails) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = when (animationStyle) {
-                                    0 -> when (chosenDirection) {
-                                        0 -> "⬅️ Slide From Left"
-                                        1 -> "➡️ Slide From Right"
-                                        2 -> "⬆️ Slide From Top"
-                                        else -> "⬇️ Slide From Bottom"
-                                    }
-                                    1 -> "✨ Fade"
-                                    2 -> "⌨️ Typewriter"
-                                    3 -> "🔍 Scale"
-                                    else -> "✨ Fade"
-                                },
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Word details (animated visibility)
-            val enterTransition = when (animationStyle) {
-                0 -> when (chosenDirection) { // Slide
-                    0 -> slideInHorizontally(initialOffsetX = { -it }) + fadeIn()
-                    1 -> slideInHorizontally(initialOffsetX = { it }) + fadeIn()
-                    2 -> slideInVertically(initialOffsetY = { -it }) + fadeIn()
-                    else -> slideInVertically(initialOffsetY = { it }) + fadeIn()
-                }
-                1 -> fadeIn() // Fade only
-                2 -> fadeIn() // Typewriter inside content
-                3 -> scaleIn(initialScale = 0.92f) + fadeIn() // Scale + fade
-                else -> fadeIn()
-            }
-            val exitTransition = when (animationStyle) {
-                0 -> when (chosenDirection) { // Slide
-                    0 -> slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
-                    1 -> slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
-                    2 -> slideOutVertically(targetOffsetY = { -it }) + fadeOut()
-                    else -> slideOutVertically(targetOffsetY = { it }) + fadeOut()
-                }
-                1 -> fadeOut()
-                2 -> fadeOut()
-                3 -> scaleOut(targetScale = 0.92f) + fadeOut()
-                else -> fadeOut()
-            }
-            AnimatedVisibility(
-                visible = showDetails,
-                enter = enterTransition,
-                exit = exitTransition
-            ) {
-                Column {
+            // Word details
+            Column {
                     // Header with word and favorite button
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -570,7 +471,7 @@ fun WordCard(
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black,
-                                    key = "word-${word.word}-${showDetails}"
+                                    key = "word-${word.word}"
                                 )
                             } else {
                                 Text(
@@ -582,7 +483,7 @@ fun WordCard(
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             IconButton(
-                                onClick = { onSpeakWord() },
+                                onClick = { onSpeakWord(word.word) },
                                 modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(
@@ -626,12 +527,29 @@ fun WordCard(
                         Column(
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            Text(
-                                text = "Definition",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Gray
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Definition",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Gray
+                                )
+                                IconButton(
+                                    onClick = { onSpeakWord(word.definition) },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                        contentDescription = "Pronounce Definition",
+                                        tint = VibrantGreen,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                             Spacer(modifier = Modifier.height(8.dp))
                             if (animationStyle == 2) {
                                 TypewriterText(
@@ -639,7 +557,7 @@ fun WordCard(
                                     fontSize = 16.sp,
                                     color = Color.Black,
                                     lineHeight = 24.sp,
-                                    key = "def-${word.word}-${showDetails}"
+                                    key = "def-${word.word}"
                                 )
                             } else {
                                 Text(
@@ -664,12 +582,29 @@ fun WordCard(
                         Column(
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            Text(
-                                text = "Example",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1976D2)
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Example",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1976D2)
+                                )
+                                IconButton(
+                                    onClick = { onSpeakWord(word.example) },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                        contentDescription = "Pronounce Example",
+                                        tint = VibrantGreen,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                             Spacer(modifier = Modifier.height(8.dp))
                             if (animationStyle == 2) {
                                 TypewriterText(
@@ -678,7 +613,7 @@ fun WordCard(
                                     color = Color.Black,
                                     lineHeight = 24.sp,
                                     fontStyle = FontStyle.Italic,
-                                    key = "ex-${word.word}-${showDetails}"
+                                    key = "ex-${word.word}"
                                 )
                             } else {
                                 Text(
@@ -699,7 +634,6 @@ fun WordCard(
                         onRatingChange = onDifficultyChange
                     )
                 }
-            }
         }
     }
 }
@@ -708,38 +642,84 @@ fun WordCard(
 @Composable
 fun getImageResId(imageName: String): Int {
     return when (imageName) {
-        // Basic Words - Food, Transport, Electronics, Apartment, Ocean
-        "word1" -> R.drawable.word1 // Food - keep existing or will be replaced
-        "word2" -> R.drawable.word2 // Transport - keep existing
-        "word3" -> R.drawable.word3 // Electronics - keep existing
-        "word4" -> R.drawable.word4 // Apartment - keep existing
-        "word5" -> R.drawable.word5 // Ocean - keep existing
-        
-        // Advanced Words - Complex vocabulary
-        "word6" -> R.drawable.word6 // Clandestine - keep existing
-        "word7" -> R.drawable.word7 // Disgruntled - keep existing
-        "word8" -> R.drawable.word8 // Grappling - keep existing
-        "word9" -> R.drawable.word9 // Coracle - keep existing
-        "word10" -> R.drawable.word10 // Trailblazer - keep existing
-        "word11" -> R.drawable.word11 // Whiff - keep existing
-        "word12" -> R.drawable.word12 // Tweak - keep existing
-        "word13" -> R.drawable.word13 // Ember - keep existing
-        "word14" -> R.drawable.word14 // Maverick - keep existing
-        "word15" -> R.drawable.word15 // Domicile - keep existing
-        
-        // Homographs - Multiple meanings
-        "word16" -> R.drawable.word16 // Bank (financial) - keep existing
-        "word17" -> R.drawable.word17 // Bank (slope) - keep existing
-        "word18" -> R.drawable.word18 // Bat (mammal) - keep existing
-        "word19" -> R.drawable.word19 // Bat (sports) - keep existing
-        "word20" -> R.drawable.word20 // Cloud - keep existing
-
-        // Advanced Vocabulary (doc1) - user-provided images
+        "abstract_img" -> R.drawable.abstract_img
+        "alight" -> R.drawable.alight
+        "altercation" -> R.drawable.altercation
+        "always" -> R.drawable.always
+        "ambel" -> R.drawable.ambel
+        "amiable" -> R.drawable.amiable
+        "anchor" -> R.drawable.anchor
+        "angry" -> R.drawable.angry
+        "annotate" -> R.drawable.annotate
+        "appraise" -> R.drawable.appraise
+        "apprensive" -> R.drawable.apprensive
+        "asafoetida" -> R.drawable.asafoetida
+        "bad" -> R.drawable.bad
+        "bank" -> R.drawable.bank
+        "bark" -> R.drawable.bark
+        "bat" -> R.drawable.bat
+        "bay_leaves" -> R.drawable.bay_leaves
+        "bestow" -> R.drawable.bestow
+        "big" -> R.drawable.big
+        "biopic" -> R.drawable.biopic
+        "black_gram" -> R.drawable.black_gram
+        "blanch" -> R.drawable.blanch
+        "blink" -> R.drawable.blink
+        "blog" -> R.drawable.blog
+        "blow_your_nose" -> R.drawable.blow_your_nose
+        "bolt" -> R.drawable.bolt
+        "bow" -> R.drawable.bow
+        "brick_klins" -> R.drawable.brick_klins
+        "bright" -> R.drawable.bright
+        "broiling" -> R.drawable.broiling
+        "brunch" -> R.drawable.brunch
+        "burp" -> R.drawable.burp
+        "busy" -> R.drawable.busy
+        "camcorder" -> R.drawable.camcorder
+        "cardamom" -> R.drawable.cardamom
+        "carelessness" -> R.drawable.carelessness
+        "casserole" -> R.drawable.casserole
+        "charge" -> R.drawable.charge
+        "chew" -> R.drawable.chew
+        "chillax" -> R.drawable.chillax
+        "chortle" -> R.drawable.chortle
+        "cinnamon" -> R.drawable.cinnamon
+        "clandestine" -> R.drawable.clandestine
+        "clear" -> R.drawable.clear
+        "clg" -> R.drawable.clg
+        "climb" -> R.drawable.climb
+        "clip" -> R.drawable.clip
+        "cloves" -> R.drawable.cloves
+        "cogitate" -> R.drawable.cogitate
+        "colander" -> R.drawable.colander
+        "collasal" -> R.drawable.collasal
+        "conclave" -> R.drawable.conclave
+        "conflate" -> R.drawable.conflate
+        "confused" -> R.drawable.confused
+        "consecration_ceremony" -> R.drawable.consecration_ceremony
+        "console" -> R.drawable.console
+        "convive" -> R.drawable.convive
+        "cower" -> R.drawable.cower
+        "craft" -> R.drawable.craft
+        "crawl" -> R.drawable.crawl
+        "cremains" -> R.drawable.cremains
+        "croon" -> R.drawable.croon
+        "crouch" -> R.drawable.crouch
+        "crumple" -> R.drawable.crumple
+        "cumin" -> R.drawable.cumin
+        "cup_ear" -> R.drawable.cup_ear
+        "current" -> R.drawable.current
+        "defenestrate" -> R.drawable.defenestrate
+        "degustation_menu" -> R.drawable.degustation_menu
+        "deplorable" -> R.drawable.deplorable
+        "diktat" -> R.drawable.diktat
+        "dine" -> R.drawable.dine
+        "discourteous" -> R.drawable.discourteous
+        "disgruntled" -> R.drawable.disgruntled
+        "dissipate" -> R.drawable.dissipate
         "doc1_halcyon" -> R.drawable.doc1_halcyon
         "doc1_jubilant" -> R.drawable.doc1_jubilant
         "doc1_poignant" -> R.drawable.doc1_poignant
-
-        // Blended Vocabulary (doc4) - user-provided images
         "doc4_blog" -> R.drawable.doc4_blog
         "doc4_brunch" -> R.drawable.doc4_brunch
         "doc4_chillax" -> R.drawable.doc4_chillax
@@ -747,8 +727,6 @@ fun getImageResId(imageName: String): Int {
         "doc4_frenemy" -> R.drawable.doc4_frenemy
         "doc4_motel" -> R.drawable.doc4_motel
         "doc4_smog" -> R.drawable.doc4_smog
-
-        // Kitchen Vocabulary (doc5) - user-provided images
         "doc5_blanch" -> R.drawable.doc5_blanch
         "doc5_grate" -> R.drawable.doc5_grate
         "doc5_knead" -> R.drawable.doc5_knead
@@ -757,8 +735,195 @@ fun getImageResId(imageName: String): Int {
         "doc5_mortar_pestle" -> R.drawable.doc5_mortar_pestle
         "doc5_tongs" -> R.drawable.doc5_tongs
         "doc5_whisk" -> R.drawable.doc5_whisk
-
-        else -> R.drawable.word1 // fallback
+        "domicile" -> R.drawable.domicile
+        "dramedy" -> R.drawable.dramedy
+        "dredging" -> R.drawable.dredging
+        "eat" -> R.drawable.eat
+        "ecstatic" -> R.drawable.ecstatic
+        "edutainment" -> R.drawable.edutainment
+        "electocute" -> R.drawable.electocute
+        "ember" -> R.drawable.ember
+        "emoticon" -> R.drawable.emoticon
+        "enervate" -> R.drawable.enervate
+        "engrossed" -> R.drawable.engrossed
+        "equanimity" -> R.drawable.equanimity
+        "facepalm" -> R.drawable.facepalm
+        "fair" -> R.drawable.fair
+        "fennel_seeds" -> R.drawable.fennel_seeds
+        "fenugreek_seeds" -> R.drawable.fenugreek_seeds
+        "fight" -> R.drawable.fight
+        "flexitarian" -> R.drawable.flexitarian
+        "flick" -> R.drawable.flick
+        "flinch" -> R.drawable.flinch
+        "flutter" -> R.drawable.flutter
+        "fortnight" -> R.drawable.fortnight
+        "foxtail" -> R.drawable.foxtail
+        "frenemy" -> R.drawable.frenemy
+        "gargle" -> R.drawable.gargle
+        "giggle" -> R.drawable.giggle
+        "grappling" -> R.drawable.grappling
+        "grate" -> R.drawable.grate
+        "green_gram" -> R.drawable.green_gram
+        "grimance" -> R.drawable.grimance
+        "guess" -> R.drawable.guess
+        "guesstimate" -> R.drawable.guesstimate
+        "halycon" -> R.drawable.halycon
+        "happy" -> R.drawable.happy
+        "henchman" -> R.drawable.henchman
+        "hiccup" -> R.drawable.hiccup
+        "hoax" -> R.drawable.hoax
+        "hop" -> R.drawable.hop
+        "idea" -> R.drawable.idea
+        "imminently" -> R.drawable.imminently
+        "incensed" -> R.drawable.incensed
+        "ineffable" -> R.drawable.ineffable
+        "infomercial" -> R.drawable.infomercial
+        "infotainment" -> R.drawable.infotainment
+        "interpol" -> R.drawable.interpol
+        "jam" -> R.drawable.jam
+        "jeggings" -> R.drawable.jeggings
+        "jubilant" -> R.drawable.jubilant
+        "knead" -> R.drawable.knead
+        "ladle" -> R.drawable.ladle
+        "late" -> R.drawable.late
+        "lead" -> R.drawable.lead
+        "lean" -> R.drawable.lean
+        "leap" -> R.drawable.leap
+        "lentils" -> R.drawable.lentils
+        "limerance" -> R.drawable.limerance
+        "linner" -> R.drawable.linner
+        "listicle" -> R.drawable.listicle
+        "little" -> R.drawable.little
+        "lucid" -> R.drawable.lucid
+        "make" -> R.drawable.make
+        "mander" -> R.drawable.mander
+        "many" -> R.drawable.many
+        "mash" -> R.drawable.mash
+        "match" -> R.drawable.match
+        "maverick" -> R.drawable.maverick
+        "meager" -> R.drawable.meager
+        "minute" -> R.drawable.minute
+        "miscreants" -> R.drawable.miscreants
+        "mockumentary" -> R.drawable.mockumentary
+        "monitor" -> R.drawable.monitor
+        "mortar_and_pestle" -> R.drawable.mortar_and_pestle
+        "motel" -> R.drawable.motel
+        "mustard_seeds" -> R.drawable.mustard_seeds
+        "negligence" -> R.drawable.negligence
+        "nervous" -> R.drawable.nervous
+        "netiquette" -> R.drawable.netiquette
+        "new_img" -> R.drawable.new_img
+        "niblings" -> R.drawable.niblings
+        "nice" -> R.drawable.nice
+        "niftastic" -> R.drawable.niftastic
+        "nod" -> R.drawable.nod
+        "notion" -> R.drawable.notion
+        "obsient" -> R.drawable.obsient
+        "often" -> R.drawable.often
+        "old" -> R.drawable.old
+        "parsley" -> R.drawable.parsley
+        "peer" -> R.drawable.peer
+        "perpetually" -> R.drawable.perpetually
+        "perplexing" -> R.drawable.perplexing
+        "petrified" -> R.drawable.petrified
+        "phablet" -> R.drawable.phablet
+        "pioneer" -> R.drawable.pioneer
+        "pitch" -> R.drawable.pitch
+        "pixel" -> R.drawable.pixel
+        "plot" -> R.drawable.plot
+        "podcast" -> R.drawable.podcast
+        "poignant" -> R.drawable.poignant
+        "poke" -> R.drawable.poke
+        "poppy_seeds" -> R.drawable.poppy_seeds
+        "pound" -> R.drawable.pound
+        "pout" -> R.drawable.pout
+        "pristine" -> R.drawable.pristine
+        "querencia" -> R.drawable.querencia
+        "racket" -> R.drawable.racket
+        "recurrently" -> R.drawable.recurrently
+        "reticent" -> R.drawable.reticent
+        "rude" -> R.drawable.rude
+        "saute" -> R.drawable.saute
+        "scale" -> R.drawable.scale
+        "scared" -> R.drawable.scared
+        "serendipity" -> R.drawable.serendipity
+        "sesame" -> R.drawable.sesame
+        "shopaholic" -> R.drawable.shopaholic
+        "shrugs" -> R.drawable.shrugs
+        "sieve" -> R.drawable.sieve
+        "sigh" -> R.drawable.sigh
+        "silent" -> R.drawable.silent
+        "sitcom" -> R.drawable.sitcom
+        "slap" -> R.drawable.slap
+        "slouch" -> R.drawable.slouch
+        "slurp" -> R.drawable.slurp
+        "smog" -> R.drawable.smog
+        "snap_fingers" -> R.drawable.snap_fingers
+        "sneeze" -> R.drawable.sneeze
+        "sniff" -> R.drawable.sniff
+        "snollygoster" -> R.drawable.snollygoster
+        "sometimes" -> R.drawable.sometimes
+        "soon" -> R.drawable.soon
+        "spill" -> R.drawable.spill
+        "spit" -> R.drawable.spit
+        "sporadically" -> R.drawable.sporadically
+        "spork" -> R.drawable.spork
+        "spring" -> R.drawable.spring
+        "squash" -> R.drawable.squash
+        "squeeze" -> R.drawable.squeeze
+        "staycation" -> R.drawable.staycation
+        "stubborn" -> R.drawable.stubborn
+        "stutter" -> R.drawable.stutter
+        "surmise" -> R.drawable.surmise
+        "suspend" -> R.drawable.suspend
+        "tardy" -> R.drawable.tardy
+        "tenuous" -> R.drawable.tenuous
+        "think" -> R.drawable.think
+        "tickle" -> R.drawable.tickle
+        "tire" -> R.drawable.tire
+        "tongs" -> R.drawable.tongs
+        "trailblazer" -> R.drawable.trailblazer
+        "tresspass" -> R.drawable.tresspass
+        "trouble" -> R.drawable.trouble
+        "truce" -> R.drawable.truce
+        "turmoil" -> R.drawable.turmoil
+        "tweak" -> R.drawable.tweak
+        "vault" -> R.drawable.vault
+        "vellichor" -> R.drawable.vellichor
+        "venerable" -> R.drawable.venerable
+        "vivid" -> R.drawable.vivid
+        "walk" -> R.drawable.walk
+        "wander" -> R.drawable.wander
+        "weak" -> R.drawable.weak
+        "whiff" -> R.drawable.whiff
+        "whisk" -> R.drawable.whisk
+        "winch" -> R.drawable.winch
+        "wink" -> R.drawable.wink
+        "wok" -> R.drawable.wok
+        "word1" -> R.drawable.word1
+        "word10" -> R.drawable.word10
+        "word11" -> R.drawable.word11
+        "word12" -> R.drawable.word12
+        "word13" -> R.drawable.word13
+        "word14" -> R.drawable.word14
+        "word15" -> R.drawable.word15
+        "word16" -> R.drawable.word16
+        "word17" -> R.drawable.word17
+        "word18" -> R.drawable.word18
+        "word19" -> R.drawable.word19
+        "word2" -> R.drawable.word2
+        "word20" -> R.drawable.word20
+        "word3" -> R.drawable.word3
+        "word4" -> R.drawable.word4
+        "word5" -> R.drawable.word5
+        "word6" -> R.drawable.word6
+        "word7" -> R.drawable.word7
+        "word8" -> R.drawable.word8
+        "word9" -> R.drawable.word9
+        "workaholic" -> R.drawable.workaholic
+        "wring" -> R.drawable.wring
+        "yank" -> R.drawable.yank
+        else -> R.drawable.ic_placeholder_word
     }
 }
 

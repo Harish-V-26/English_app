@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -129,14 +130,15 @@ val builtInCategories = listOf(
         title = "Homographs Words",
         description = "Words that are spelled the same but have different meanings",
         color = VibrantGreen,
-        icon = Icons.Default.CompareArrows, // Changed from AutoMirrored to Default
+        icon = Icons.AutoMirrored.Filled.CompareArrows, // Updated to AutoMirrored
         words = words3
     )
 )
 
 // Full category list = original 3 categories + the 7 new categories built from
 // the department's word documents (docCategories lives in VocabularyDocs.kt)
-val categories = builtInCategories + docCategories
+// Hide all built-in fake data, including Homographs. Only show document categories.
+val categories = docCategories
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -255,7 +257,7 @@ fun HomeScreen(
                             scope.launch { drawerState.close() }
                             onLogout() 
                         },
-                        icon = { Icon(Icons.Default.Logout, contentDescription = "Logout") }
+                        icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout") }
                     )
                 } else {
                     NavigationDrawerItem(
@@ -265,7 +267,7 @@ fun HomeScreen(
                             scope.launch { drawerState.close() }
                             onLogin() 
                         },
-                        icon = { Icon(Icons.Default.Login, contentDescription = "Login") }
+                        icon = { Icon(Icons.AutoMirrored.Filled.Login, contentDescription = "Login") }
                     )
                 }
                 Row(
@@ -368,7 +370,7 @@ fun HomeScreen(
                             )
                         }
                         Icon(
-                            imageVector = Icons.Default.ArrowForward,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Go to quiz",
                             tint = Color.White
                         )
@@ -493,18 +495,12 @@ fun EnhancedCategoryCard(
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
-                    Text(
-                        text = "60% completed",
-                        fontSize = 12.sp,
-                        color = category.color,
-                        fontWeight = FontWeight.Medium
-                    )
                 }
             }
 
             // Arrow
             Icon(
-                imageVector = Icons.Default.ArrowForward,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Go to category",
                 tint = category.color,
                 modifier = Modifier.size(24.dp)
@@ -733,7 +729,7 @@ val learningModules = listOf(
 val quickActions = listOf(
     QuickAction("Daily Quiz", Icons.Default.QuestionAnswer, VibrantBlue),
     QuickAction("Flashcards", Icons.Default.Style, VibrantGreen),
-    QuickAction("Progress", Icons.Default.ShowChart, VibrantPurple)
+    QuickAction("Progress", Icons.AutoMirrored.Filled.ShowChart, VibrantPurple)
 )
 
 @Preview(showBackground = true)

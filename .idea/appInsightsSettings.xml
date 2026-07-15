@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.example.english_app" />
-                  <option name="mobileSdkAppId" value="1:601582889258:android:ca40082e6037f98cf6d653" />
-                  <option name="projectId" value="english-firebase-a38bd" />
-                  <option name="projectNumber" value="601582889258" />
+                  <option name="appId" value="English.Learn.App" />
+                  <option name="mobileSdkAppId" value="1:331963078820:android:67bd3e3053662025446e31" />
+                  <option name="projectId" value="english-learn-app-66aac" />
+                  <option name="projectNumber" value="331963078820" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
