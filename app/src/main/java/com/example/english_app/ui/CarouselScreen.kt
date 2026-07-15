@@ -448,7 +448,7 @@ fun WordCard(
                         ),
                         contentDescription = "Image for ${word.word}",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Fit
                     )
                 }
             }
@@ -700,6 +700,7 @@ fun getImageResId(imageName: String): Int {
         "console" -> R.drawable.console
         "convive" -> R.drawable.convive
         "cower" -> R.drawable.cower
+        "cozy" -> R.drawable.cozy
         "craft" -> R.drawable.craft
         "crawl" -> R.drawable.crawl
         "cremains" -> R.drawable.cremains
@@ -712,6 +713,7 @@ fun getImageResId(imageName: String): Int {
         "defenestrate" -> R.drawable.defenestrate
         "degustation_menu" -> R.drawable.degustation_menu
         "deplorable" -> R.drawable.deplorable
+        "devour" -> R.drawable.devour
         "diktat" -> R.drawable.diktat
         "dine" -> R.drawable.dine
         "discourteous" -> R.drawable.discourteous
@@ -738,15 +740,21 @@ fun getImageResId(imageName: String): Int {
         "domicile" -> R.drawable.domicile
         "dramedy" -> R.drawable.dramedy
         "dredging" -> R.drawable.dredging
+        "drowsy" -> R.drawable.drowsy
         "eat" -> R.drawable.eat
         "ecstatic" -> R.drawable.ecstatic
         "edutainment" -> R.drawable.edutainment
         "electocute" -> R.drawable.electocute
+        "elegant" -> R.drawable.elegant
+        "embarrass" -> R.drawable.embarrass
         "ember" -> R.drawable.ember
         "emoticon" -> R.drawable.emoticon
         "enervate" -> R.drawable.enervate
         "engrossed" -> R.drawable.engrossed
+        "ephemeral" -> R.drawable.ephemeral
         "equanimity" -> R.drawable.equanimity
+        "evade" -> R.drawable.evade
+        "exaggerate" -> R.drawable.exaggerate
         "facepalm" -> R.drawable.facepalm
         "fair" -> R.drawable.fair
         "fennel_seeds" -> R.drawable.fennel_seeds
@@ -761,10 +769,14 @@ fun getImageResId(imageName: String): Int {
         "frenemy" -> R.drawable.frenemy
         "gargle" -> R.drawable.gargle
         "giggle" -> R.drawable.giggle
+        "glance" -> R.drawable.glance
+        "grab" -> R.drawable.grab
         "grappling" -> R.drawable.grappling
         "grate" -> R.drawable.grate
         "green_gram" -> R.drawable.green_gram
         "grimance" -> R.drawable.grimance
+        "grime" -> R.drawable.grime
+        "groan" -> R.drawable.groan
         "guess" -> R.drawable.guess
         "guesstimate" -> R.drawable.guesstimate
         "halycon" -> R.drawable.halycon
@@ -808,6 +820,7 @@ fun getImageResId(imageName: String): Int {
         "monitor" -> R.drawable.monitor
         "mortar_and_pestle" -> R.drawable.mortar_and_pestle
         "motel" -> R.drawable.motel
+        "mumble" -> R.drawable.mumble
         "mustard_seeds" -> R.drawable.mustard_seeds
         "negligence" -> R.drawable.negligence
         "nervous" -> R.drawable.nervous
@@ -819,21 +832,25 @@ fun getImageResId(imageName: String): Int {
         "nod" -> R.drawable.nod
         "notion" -> R.drawable.notion
         "obsient" -> R.drawable.obsient
+        "obsolete" -> R.drawable.obsolete
         "often" -> R.drawable.often
         "old" -> R.drawable.old
         "parsley" -> R.drawable.parsley
         "peer" -> R.drawable.peer
         "perpetually" -> R.drawable.perpetually
         "perplexing" -> R.drawable.perplexing
+        "persuade" -> R.drawable.persuade
         "petrified" -> R.drawable.petrified
         "phablet" -> R.drawable.phablet
         "pioneer" -> R.drawable.pioneer
         "pitch" -> R.drawable.pitch
         "pixel" -> R.drawable.pixel
         "plot" -> R.drawable.plot
+        "plunge" -> R.drawable.plunge
         "podcast" -> R.drawable.podcast
         "poignant" -> R.drawable.poignant
         "poke" -> R.drawable.poke
+        "ponder" -> R.drawable.ponder
         "poppy_seeds" -> R.drawable.poppy_seeds
         "pound" -> R.drawable.pound
         "pout" -> R.drawable.pout
@@ -841,6 +858,8 @@ fun getImageResId(imageName: String): Int {
         "querencia" -> R.drawable.querencia
         "racket" -> R.drawable.racket
         "recurrently" -> R.drawable.recurrently
+        "reluctant" -> R.drawable.reluctant
+        "resilient" -> R.drawable.resilient
         "reticent" -> R.drawable.reticent
         "rude" -> R.drawable.rude
         "saute" -> R.drawable.saute
@@ -849,16 +868,22 @@ fun getImageResId(imageName: String): Int {
         "serendipity" -> R.drawable.serendipity
         "sesame" -> R.drawable.sesame
         "shopaholic" -> R.drawable.shopaholic
+        "shred" -> R.drawable.shred
         "shrugs" -> R.drawable.shrugs
         "sieve" -> R.drawable.sieve
         "sigh" -> R.drawable.sigh
         "silent" -> R.drawable.silent
         "sitcom" -> R.drawable.sitcom
+        "slam" -> R.drawable.slam
         "slap" -> R.drawable.slap
         "slouch" -> R.drawable.slouch
+        "sludge" -> R.drawable.sludge
         "slurp" -> R.drawable.slurp
+        "slury" -> R.drawable.slury
+        "slush" -> R.drawable.slush
         "smog" -> R.drawable.smog
         "snap_fingers" -> R.drawable.snap_fingers
+        "snatch" -> R.drawable.snatch
         "sneeze" -> R.drawable.sneeze
         "sniff" -> R.drawable.sniff
         "snollygoster" -> R.drawable.snollygoster
@@ -866,20 +891,24 @@ fun getImageResId(imageName: String): Int {
         "soon" -> R.drawable.soon
         "spill" -> R.drawable.spill
         "spit" -> R.drawable.spit
+        "splendid" -> R.drawable.splendid
         "sporadically" -> R.drawable.sporadically
         "spork" -> R.drawable.spork
         "spring" -> R.drawable.spring
         "squash" -> R.drawable.squash
         "squeeze" -> R.drawable.squeeze
+        "stare" -> R.drawable.stare
         "staycation" -> R.drawable.staycation
         "stubborn" -> R.drawable.stubborn
         "stutter" -> R.drawable.stutter
         "surmise" -> R.drawable.surmise
         "suspend" -> R.drawable.suspend
+        "swift" -> R.drawable.swift
         "tardy" -> R.drawable.tardy
         "tenuous" -> R.drawable.tenuous
         "think" -> R.drawable.think
         "tickle" -> R.drawable.tickle
+        "timid" -> R.drawable.timid
         "tire" -> R.drawable.tire
         "tongs" -> R.drawable.tongs
         "trailblazer" -> R.drawable.trailblazer
@@ -923,6 +952,7 @@ fun getImageResId(imageName: String): Int {
         "workaholic" -> R.drawable.workaholic
         "wring" -> R.drawable.wring
         "yank" -> R.drawable.yank
+        "yell" -> R.drawable.yell
         else -> R.drawable.ic_placeholder_word
     }
 }
