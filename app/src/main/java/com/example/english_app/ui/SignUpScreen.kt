@@ -181,48 +181,83 @@ fun SignUpScreen(
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            // College name at the top — matching Login screen
-            Text(
-                text = "Sri Ramakrishna College of Arts & Science",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                textAlign = TextAlign.Center,
+            // College logo and name at the top
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
-            
-            // College logo
-            Card(
-                modifier = Modifier
-                    .size(150.dp)
-                    .shadow(20.dp, RoundedCornerShape(24.dp)),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.clg),
-                    contentDescription = "SRCAS Shield Logo",
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
-                    contentScale = ContentScale.Fit
+                        .size(56.dp)
+                        .shadow(8.dp, RoundedCornerShape(12.dp)),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.clg),
+                        contentDescription = "SRCAS Shield Logo",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Text(
+                    text = "Sri Ramakrishna College\nof Arts & Science",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
                 )
             }
+
             Spacer(modifier = Modifier.height(16.dp))
             
+            // App Logo
+            Image(
+                painter = painterResource(id = R.drawable.wordwhiz_logo),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(90.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
             Text(
-                text = "Join Our Community!",
+                text = "WORDWhiz",
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
             
             Text(
+                text = "VOCABULARY LEARNING APP",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.9f),
+                textAlign = TextAlign.Center
+            )
+        
+            Spacer(modifier = Modifier.height(16.dp))
+        
+            Text(
+                text = "Join Our Community!",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+        
+            Text(
                 text = "Create your account to start learning English",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center
             )
