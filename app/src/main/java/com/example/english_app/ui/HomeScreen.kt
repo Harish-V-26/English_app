@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -237,13 +240,22 @@ fun HomeScreen(
                 Text(userName, modifier = Modifier.align(Alignment.CenterHorizontally), fontWeight = FontWeight.Bold)
                 Text("Menu", modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold)
                 NavigationDrawerItem(
-                    label = { Text("Home") },
+                    label = { Text("Learning") },
                     selected = false,
                     onClick = { 
                         scope.launch { drawerState.close() }
                         onHome() 
                     },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") }
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Learning") }
+                )
+                NavigationDrawerItem(
+                    label = { Text("Quiz") },
+                    selected = false,
+                    onClick = { 
+                        scope.launch { drawerState.close() }
+                        onQuiz() 
+                    },
+                    icon = { Icon(Icons.Default.Star, contentDescription = "Quiz") }
                 )
                 NavigationDrawerItem(
                     label = { Text("Settings") },
@@ -372,64 +384,22 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ── Practice / Quiz shortcut ────────────────────────
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onQuiz() }
-                        .shadow(3.dp, RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = VibrantOrange),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Quiz,
-                            contentDescription = "Practice and Quiz",
-                            tint = Color.White,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Practice & Take a Quiz",
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "Test what you've learned from any category",
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.9f)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Go to quiz",
-                            tint = Color.White
-                        )
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
 
                 // Categories with navigation
                 val filteredCategories = categories.filter { it.title.contains(searchQuery, ignoreCase = true) }
                 if (filteredCategories.isNotEmpty()) {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         items(filteredCategories) { category ->
-                            EnhancedCategoryCard(
+                            GridCategoryCard(
                                 category = category,
-                                onCategorySelected = onCategorySelected,
-                                onSpeakCategory = { 
-                                    tts.speak(category.title, TextToSpeech.QUEUE_FLUSH, null, null)
-                                }
+                                onCategorySelected = onCategorySelected
                             )
                         }
                     }
@@ -451,101 +421,65 @@ fun HomeScreen(
     }
 }
 
+// Helper to abbreviate category names (e.g., "Basic Vocabulary" -> "B. V.")
+fun abbreviateCategoryTitle(title: String): String {
+    val words = title.split(" ")
+    if (words.size == 1) return title
+    return words.filter { it.isNotBlank() }
+                .joinToString(" ") { it.take(1).uppercase() + "." }
+}
+
 @Composable
-fun EnhancedCategoryCard(
+fun GridCategoryCard(
     category: Category,
-    onCategorySelected: (Category) -> Unit,
-    onSpeakCategory: () -> Unit
+    onCategorySelected: (Category) -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCategorySelected(category) }
-            .shadow(3.dp, RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(16.dp)
+    val shortTitle = abbreviateCategoryTitle(category.title)
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().clickable { onCategorySelected(category) }
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .shadow(4.dp, RoundedCornerShape(12.dp)),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            // Icon and progress
             Box(
-                modifier = Modifier.size(60.dp),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = category.icon,
-                    contentDescription = category.title,
-                    tint = category.color,
-                    modifier = Modifier.size(32.dp)
-                )
-                CircularProgressIndicator(
-                    progress = { 0.6f },
-                    modifier = Modifier.size(60.dp),
-                    color = category.color.copy(alpha = 0.3f),
-                    strokeWidth = 4.dp
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Category info
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = category.title,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = { onSpeakCategory() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = "Pronounce category",
-                            tint = category.color,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
                 Text(
-                    text = category.description,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    text = shortTitle,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = category.color,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(8.dp)
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "${category.words.size} words",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
-
-            // Arrow
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Go to category",
-                tint = category.color,
-                modifier = Modifier.size(24.dp)
-            )
         }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = category.title,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+        )
     }
 }
+
+
 
 @Composable
 fun ProgressCard(

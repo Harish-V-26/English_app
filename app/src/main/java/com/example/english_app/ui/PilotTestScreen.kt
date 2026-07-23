@@ -1,10 +1,14 @@
 package com.example.english_app.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -115,36 +119,66 @@ fun PilotTestScreen(onBack: () -> Unit) {
 
             question.options.forEachIndexed { index, option ->
                 val isSelected = selectedOption == index
-                val isCorrectOption = index == question.correctIndex
-
-                val containerColor = when {
-                    selectedOption == null -> MaterialTheme.colorScheme.surface
-                    isSelected -> VibrantPurple.copy(alpha = 0.15f)
-                    else -> MaterialTheme.colorScheme.surface
-                }
-
-                val borderStroke = when {
-                    selectedOption == null -> null
-                    isSelected -> androidx.compose.foundation.BorderStroke(2.dp, VibrantPurple)
-                    else -> null
-                }
+                
+                val containerColor by androidx.compose.animation.animateColorAsState(
+                    targetValue = if (isSelected) VibrantPurple.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
+                    label = "colorAnim"
+                )
+                
+                val borderWidth by androidx.compose.animation.core.animateDpAsState(
+                    targetValue = if (isSelected) 2.dp else 0.dp,
+                    label = "borderAnim"
+                )
+                
+                val elevation by androidx.compose.animation.core.animateDpAsState(
+                    targetValue = if (isSelected) 6.dp else 2.dp,
+                    label = "elevationAnim"
+                )
 
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
                     colors = CardDefaults.cardColors(containerColor = containerColor),
-                    border = borderStroke,
+                    border = if (borderWidth > 0.dp) androidx.compose.foundation.BorderStroke(borderWidth, VibrantPurple) else null,
                     shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = elevation),
                     onClick = {
-                        selectedOption = index
+                        // Allow users to deselect the chosen answer by tapping it again
+                        selectedOption = if (selectedOption == index) null else index
                     }
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Custom animated radio button / check circle indicator
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(
+                                    color = if (isSelected) VibrantPurple else Color.Transparent,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = if (isSelected) VibrantPurple else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
                         Text(text = option, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }

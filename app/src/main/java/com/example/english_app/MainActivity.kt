@@ -148,12 +148,15 @@ class MainActivity : ComponentActivity() {
                 var hasSeenOnboarding by remember { mutableStateOf(prefsApp.getBoolean("has_seen_onboarding", false)) }
                 val startRoute = if (hasSeenOnboarding) "login" else "onboarding"
 
-                // Load user profile when logged in
-                LaunchedEffect(isLoggedIn) {
-                    if (isLoggedIn) {
+                // Load user profile when logged in or clear it when logged out
+                LaunchedEffect(firebaseUser?.uid) {
+                    if (firebaseUser != null) {
                         UserProgressRepository.loadUserProfile { profile ->
                             userProfile = profile
                         }
+                    } else {
+                        userProfile = UserProfile()
+                        googleAccountInfoState.value = null
                     }
                 }
 

@@ -17,6 +17,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.Shapes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.graphics.toArgb
 
 // Generously rounded corners app-wide for the playful, polished look —
 // components that don't explicitly override `shape =` will pick these up.
@@ -78,6 +82,15 @@ fun ENGLISH_APPTheme(
 
     val currentDensity = LocalDensity.current
     val customDensity = Density(density = currentDensity.density, fontScale = currentDensity.fontScale * fontScale)
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,
