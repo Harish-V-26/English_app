@@ -167,19 +167,13 @@ fun QuizScreen(
 
                 val containerColor = when {
                     selectedOption == null -> Color.White
-                    isSelected -> {
-                        if (isCorrectOption) Color(0xFFC8E6C9) // Green for correct selected
-                        else Color(0xFFFFCDD2) // Red for incorrect selected
-                    }
+                    isSelected -> category.color.copy(alpha = 0.15f)
                     else -> Color.White
                 }
 
                 val borderStroke = when {
                     selectedOption == null -> null
-                    isSelected -> {
-                        if (isCorrectOption) BorderStroke(2.dp, Color(0xFF388E3C))
-                        else BorderStroke(2.dp, Color(0xFFD32F2F))
-                    }
+                    isSelected -> BorderStroke(2.dp, category.color)
                     else -> null
                 }
 
@@ -192,18 +186,7 @@ fun QuizScreen(
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     onClick = {
-                        if (selectedOption == null) {
-                            selectedOption = index
-                            if (isCorrectOption) score++
-                            userAnswers.add(
-                                QuizAnswerDetail(
-                                    word = question.word.word,
-                                    correctAnswer = question.options[question.correctIndex],
-                                    userAnswer = option,
-                                    isCorrect = isCorrectOption
-                                )
-                            )
-                        }
+                        selectedOption = index
                     }
                 ) {
                     Row(
@@ -219,6 +202,19 @@ fun QuizScreen(
 
             Button(
                 onClick = {
+                    selectedOption?.let { selIndex ->
+                        val isCorrect = selIndex == question.correctIndex
+                        if (isCorrect) score++
+                        userAnswers.add(
+                            QuizAnswerDetail(
+                                word = question.word.word,
+                                correctAnswer = question.options[question.correctIndex],
+                                userAnswer = question.options[selIndex],
+                                isCorrect = isCorrect
+                            )
+                        )
+                    }
+
                     if (currentIndex < questions.size - 1) {
                         currentIndex++
                         selectedOption = null
@@ -258,12 +254,24 @@ fun QuizResultView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = "Result",
-            tint = color,
-            modifier = Modifier.size(64.dp)
-        )
+        val isPerfectScore = score == total && total > 0
+        if (isPerfectScore) {
+            val composition by com.airbnb.lottie.compose.rememberLottieComposition(
+                com.airbnb.lottie.compose.LottieCompositionSpec.Url("https://assets9.lottiefiles.com/packages/lf20_obhph3sh.json")
+            )
+            com.airbnb.lottie.compose.LottieAnimation(
+                composition = composition,
+                iterations = 1,
+                modifier = Modifier.size(150.dp)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "Result",
+                tint = color,
+                modifier = Modifier.size(64.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "You scored $score / $total",

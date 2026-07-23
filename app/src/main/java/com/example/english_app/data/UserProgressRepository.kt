@@ -148,13 +148,18 @@ object UserProgressRepository {
                         rollNo = doc.getString("rollNo") ?: "",
                         department = doc.getString("department") ?: "",
                         role = doc.getString("role") ?: "student",
-                        email = doc.getString("email") ?: ""
+                        email = doc.getString("email") ?: "",
+                        lastLoginDate = doc.getLong("lastLoginDate") ?: 0L,
+                        currentStreak = (doc.getLong("currentStreak") ?: 0L).toInt(),
+                        badges = (doc.get("badges") as? List<String>) ?: emptyList()
                     )
-                    onResult(profile)
+                    
+                    val updatedProfile = calculateStreak(profile)
+                    if (updatedProfile != profile) {
+                        saveStreakAndBadges(uid, updatedProfile)
+                    }
+                    onResult(updatedProfile)
                 } else {
-                    // First time we've seen this user (e.g. fresh Google Sign-In) —
-                    // create a minimal profile now so they're never a Firestore
-                    // "ghost" with quiz results but no department to be grouped by.
                     val fallbackName = FirebaseAuth.getInstance().currentUser?.displayName ?: ""
                     val fallbackEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
                     val newProfile = UserProfile(
@@ -162,7 +167,10 @@ object UserProgressRepository {
                         rollNo = "",
                         department = "",
                         role = "student",
-                        email = fallbackEmail
+                        email = fallbackEmail,
+                        lastLoginDate = System.currentTimeMillis(),
+                        currentStreak = 1,
+                        badges = emptyList()
                     )
                     userDocRef.set(
                         mapOf(
@@ -171,7 +179,10 @@ object UserProgressRepository {
                             "department" to newProfile.department,
                             "role" to newProfile.role,
                             "email" to newProfile.email,
-                            "uid" to uid
+                            "uid" to uid,
+                            "lastLoginDate" to newProfile.lastLoginDate,
+                            "currentStreak" to newProfile.currentStreak,
+                            "badges" to newProfile.badges
                         ),
                         com.google.firebase.firestore.SetOptions.merge()
                     )
@@ -180,6 +191,77 @@ object UserProgressRepository {
             }
             .addOnFailureListener {
                 onResult(UserProfile())
+            }
+    }
+
+    private fun calculateStreak(profile: UserProfile): UserProfile {
+        val now = System.currentTimeMillis()
+        val calendar = java.util.Calendar.getInstance()
+        
+        calendar.timeInMillis = now
+        val currentDay = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+        val currentYear = calendar.get(java.util.Calendar.YEAR)
+        
+        if (profile.lastLoginDate == 0L) {
+            return profile.copy(lastLoginDate = now, currentStreak = 1)
+        }
+
+        calendar.timeInMillis = profile.lastLoginDate
+        val lastDay = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+        val lastYear = calendar.get(java.util.Calendar.YEAR)
+
+        if (currentYear == lastYear && currentDay == lastDay) {
+            return profile // Already logged in today
+        }
+
+        val isNextDay = (currentYear == lastYear && currentDay == lastDay + 1) ||
+                        (currentYear == lastYear + 1 && currentDay == 1 && lastDay >= 365)
+                        
+        val newStreak = if (isNextDay) profile.currentStreak + 1 else 1
+        
+        val newBadges = profile.badges.toMutableList()
+        if (newStreak >= 3 && !newBadges.contains("3-Day Streak")) newBadges.add("3-Day Streak")
+        if (newStreak >= 7 && !newBadges.contains("7-Day Streak")) newBadges.add("7-Day Streak")
+        if (newStreak >= 30 && !newBadges.contains("30-Day Streak")) newBadges.add("30-Day Streak")
+        
+        return profile.copy(lastLoginDate = now, currentStreak = newStreak, badges = newBadges)
+    }
+
+    private fun saveStreakAndBadges(uid: String, profile: UserProfile) {
+        db.collection("users").document(uid).update(
+            mapOf(
+                "lastLoginDate" to profile.lastLoginDate,
+                "currentStreak" to profile.currentStreak,
+                "badges" to profile.badges
+            )
+        )
+    }
+
+    /** Fetches the top students for a given department based on their current streak */
+    fun getTopStudentsByStreak(department: String, limit: Int = 10, onResult: (List<UserProfile>) -> Unit) {
+        db.collection("users")
+            .whereEqualTo("role", "student")
+            .whereEqualTo("department", department)
+            .orderBy("currentStreak", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(limit.toLong())
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val students = snapshot.documents.mapNotNull { doc ->
+                    UserProfile(
+                        name = doc.getString("name") ?: "",
+                        rollNo = doc.getString("rollNo") ?: "",
+                        department = doc.getString("department") ?: "",
+                        role = doc.getString("role") ?: "student",
+                        email = doc.getString("email") ?: "",
+                        lastLoginDate = doc.getLong("lastLoginDate") ?: 0L,
+                        currentStreak = (doc.getLong("currentStreak") ?: 0L).toInt(),
+                        badges = (doc.get("badges") as? List<String>) ?: emptyList()
+                    )
+                }
+                onResult(students)
+            }
+            .addOnFailureListener {
+                onResult(emptyList())
             }
     }
     // ─── Quiz Results (Detailed) ───────────────────────────────────
@@ -370,6 +452,18 @@ object UserProgressRepository {
                                 val total = (doc.getLong("total") ?: 0L).toInt()
                                 val catTitle = doc.getString("categoryTitle") ?: ""
                                 val ts = doc.getLong("timestamp") ?: 0L
+                                
+                                val rawAnswers = doc.get("answers") as? List<*> ?: emptyList<Any>()
+                                val parsedAnswers = rawAnswers.mapNotNull { item ->
+                                    val map = item as? Map<*, *> ?: return@mapNotNull null
+                                    QuizAnswerDetail(
+                                        word = map["word"] as? String ?: "",
+                                        correctAnswer = map["correctAnswer"] as? String ?: "",
+                                        userAnswer = map["userAnswer"] as? String ?: "",
+                                        isCorrect = map["isCorrect"] as? Boolean ?: false
+                                    )
+                                }
+                                
                                 totalScore += score
                                 totalQuestions += total
                                 testResults.add(
@@ -377,7 +471,8 @@ object UserProgressRepository {
                                         categoryTitle = catTitle,
                                         score = score,
                                         total = total,
-                                        timestamp = ts
+                                        timestamp = ts,
+                                        answers = parsedAnswers
                                     )
                                 )
                             }
@@ -587,7 +682,10 @@ data class UserProfile(
     val rollNo: String = "",
     val department: String = "",
     val role: String = "student",
-    val email: String = ""
+    val email: String = "",
+    val lastLoginDate: Long = 0L,
+    val currentStreak: Int = 0,
+    val badges: List<String> = emptyList()
 )
 
 data class QuizAnswerDetail(
@@ -618,5 +716,6 @@ data class StudentTestResult(
     val categoryTitle: String = "",
     val score: Int = 0,
     val total: Int = 0,
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    val answers: List<QuizAnswerDetail> = emptyList()
 )

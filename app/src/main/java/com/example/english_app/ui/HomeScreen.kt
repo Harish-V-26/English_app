@@ -138,7 +138,19 @@ val builtInCategories = listOf(
 // Full category list = original 3 categories + the 7 new categories built from
 // the department's word documents (docCategories lives in VocabularyDocs.kt)
 // Hide all built-in fake data, including Homographs. Only show document categories.
-val categories = docCategories
+// Filter docCategories to only include words that appear as options in the pilot test
+private val pilotOptions = pilotTestQuestions.flatMap { it.options }.map { it.lowercase().trim() }
+val categories = docCategories.map { category ->
+    val filteredWords = category.words.filter { wordObj ->
+        val wordLower = wordObj.word.lowercase().trim()
+        pilotOptions.any { option ->
+            option == wordLower ||
+            (option.startsWith(wordLower) && option.length - wordLower.length <= 2) ||
+            (wordLower.startsWith(option) && wordLower.length - option.length <= 2)
+        }
+    }
+    category.copy(words = filteredWords)
+}.filter { it.words.isNotEmpty() }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

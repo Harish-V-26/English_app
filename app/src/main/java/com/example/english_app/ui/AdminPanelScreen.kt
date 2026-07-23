@@ -729,7 +729,7 @@ fun StudentReportRow(report: StudentReport) {
                             val sdf = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault())
                             sdf.format(java.util.Date(test.timestamp))
                         }
-                        Row(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
@@ -737,29 +737,53 @@ fun StudentReportRow(report: StudentReport) {
                                     color = if (testPercent >= 70) Color(0xFFE8F5E9) else if (testPercent >= 40) Color(0xFFFFFDE7) else Color(0xFFFFEBEE),
                                     shape = RoundedCornerShape(8.dp)
                                 )
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = test.categoryTitle,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = dateStr,
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                                 Text(
-                                    text = test.categoryTitle,
+                                    text = "${test.score}/${test.total} ($testPercent%)",
                                     fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = dateStr,
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
                                 )
                             }
-                            Text(
-                                text = "${test.score}/${test.total} ($testPercent%)",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
-                            )
+                            
+                            if (test.answers.isNotEmpty()) {
+                                val incorrect = test.answers.filter { !it.isCorrect }
+                                if (incorrect.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("Needs Review:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC62828))
+                                    incorrect.forEach { ans ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(ans.word, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface)
+                                            Text("Ans: ${ans.userAnswer}", fontSize = 11.sp, color = Color(0xFFC62828))
+                                        }
+                                    }
+                                } else if (testPercent == 100) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("Perfect score! 🎉", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                }
+                            }
                         }
                     }
                 }

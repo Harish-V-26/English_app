@@ -53,10 +53,16 @@ fun DashboardScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit,
     onSettings: () -> Unit,
-    onContact: () -> Unit
+    onContact: () -> Unit,
+    onLeaderboard: () -> Unit
 ) {
     var stats by remember { mutableStateOf(DashboardStats()) }
     var detailedResults by remember { mutableStateOf<List<DetailedQuizResult>>(emptyList()) }
+    var profile by remember { mutableStateOf(com.example.english_app.data.UserProfile()) }
+
+    LaunchedEffect(Unit) {
+        UserProgressRepository.loadUserProfile { p -> profile = p }
+    }
 
     DisposableEffect(Unit) {
         val listener = UserProgressRepository.observeDashboardStats { loaded ->
@@ -168,7 +174,12 @@ fun DashboardScreen(
                 ) {
                     // User Profile Section
                     item {
-                        UserProfileSection(userName, userEmail, userPhotoUrl)
+                        UserProfileSection(userName, userEmail, userPhotoUrl, profile)
+                    }
+
+                    // Quick Actions
+                    item {
+                        QuickActions(onNavigateToHome, onLeaderboard)
                     }
 
                     // Progress Stats
@@ -390,7 +401,7 @@ fun ProgressBarWidget(label: String, progress: Float, color: Color) {
 }
 
 @Composable
-fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String?) {
+fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String?, profile: com.example.english_app.data.UserProfile) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -428,7 +439,7 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Welcome back, $userName!",
                     fontSize = 18.sp,
@@ -440,6 +451,11 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("🔥", fontSize = 24.sp)
+                Text("${profile.currentStreak} Day${if (profile.currentStreak == 1) "" else "s"}", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("Streak", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -517,7 +533,7 @@ fun ProgressStat(title: String, current: String, total: String, progress: Float,
 }
 
 @Composable
-fun QuickActions(onNavigateToHome: () -> Unit) {
+fun QuickActions(onNavigateToHome: () -> Unit, onLeaderboard: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -545,9 +561,9 @@ fun QuickActions(onNavigateToHome: () -> Unit) {
                     color = VibrantBlue
                 )
                 QuickActionButton(
-                    icon = Icons.Default.Add,
-                    text = "Add Word",
-                    onClick = { /* TODO */ },
+                    icon = Icons.Default.EmojiEvents, // Trophy icon
+                    text = "Leaderboard",
+                    onClick = onLeaderboard,
                     color = VibrantGreen
                 )
                 QuickActionButton(

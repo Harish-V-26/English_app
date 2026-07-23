@@ -448,7 +448,7 @@ fun WordCard(
                         ),
                         contentDescription = "Image for ${word.word}",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Crop
                     )
                 }
             }

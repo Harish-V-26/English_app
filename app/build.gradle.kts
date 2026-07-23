@@ -63,4 +63,6 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.lottie.compose)
+    implementation(libs.datastore.preferences)
 }

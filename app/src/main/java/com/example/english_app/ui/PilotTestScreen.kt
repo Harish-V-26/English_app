@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.english_app.data.QuizAnswerDetail
 import com.example.english_app.data.UserProgressRepository
 import com.example.english_app.ui.theme.VibrantPurple
 
@@ -24,6 +25,7 @@ fun PilotTestScreen(onBack: () -> Unit) {
     var score by remember { mutableIntStateOf(0) }
     var isFinished by remember { mutableStateOf(false) }
     var resultSaved by remember { mutableStateOf(false) }
+    val userAnswers = remember { mutableStateListOf<QuizAnswerDetail>() }
 
     Scaffold(
         topBar = {
@@ -55,7 +57,8 @@ fun PilotTestScreen(onBack: () -> Unit) {
                             categoryId = PILOT_TEST_CATEGORY_ID,
                             categoryTitle = PILOT_TEST_TITLE,
                             score = score,
-                            total = pilotTestQuestions.size
+                            total = pilotTestQuestions.size,
+                            answers = userAnswers
                         )
                         resultSaved = true
                     }
@@ -70,6 +73,7 @@ fun PilotTestScreen(onBack: () -> Unit) {
                         selectedOption = null
                         isFinished = false
                         resultSaved = false
+                        userAnswers.clear()
                     },
                     onBack = onBack
                 )
@@ -112,13 +116,17 @@ fun PilotTestScreen(onBack: () -> Unit) {
             question.options.forEachIndexed { index, option ->
                 val isSelected = selectedOption == index
                 val isCorrectOption = index == question.correctIndex
-                val showFeedback = selectedOption != null
 
                 val containerColor = when {
-                    !showFeedback -> MaterialTheme.colorScheme.surface
-                    isCorrectOption -> Color(0xFFC8E6C9)
-                    isSelected && !isCorrectOption -> Color(0xFFFFCDD2)
+                    selectedOption == null -> MaterialTheme.colorScheme.surface
+                    isSelected -> VibrantPurple.copy(alpha = 0.15f)
                     else -> MaterialTheme.colorScheme.surface
+                }
+
+                val borderStroke = when {
+                    selectedOption == null -> null
+                    isSelected -> androidx.compose.foundation.BorderStroke(2.dp, VibrantPurple)
+                    else -> null
                 }
 
                 Card(
@@ -126,28 +134,17 @@ fun PilotTestScreen(onBack: () -> Unit) {
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
                     colors = CardDefaults.cardColors(containerColor = containerColor),
+                    border = borderStroke,
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     onClick = {
-                        if (selectedOption == null) {
-                            selectedOption = index
-                            if (isCorrectOption) score++
-                        }
+                        selectedOption = index
                     }
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (showFeedback && isCorrectOption) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Correct",
-                                tint = Color(0xFF388E3C),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
                         Text(text = option, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
@@ -157,6 +154,21 @@ fun PilotTestScreen(onBack: () -> Unit) {
 
             Button(
                 onClick = {
+                    selectedOption?.let { selIndex ->
+                        val isCorrect = selIndex == question.correctIndex
+                        if (isCorrect) {
+                            score++
+                        }
+                        userAnswers.add(
+                            QuizAnswerDetail(
+                                word = question.prompt, // For Pilot test, prompt is the sentence/question
+                                correctAnswer = question.options[question.correctIndex],
+                                userAnswer = question.options[selIndex],
+                                isCorrect = isCorrect
+                            )
+                        )
+                    }
+
                     if (currentIndex < pilotTestQuestions.size - 1) {
                         currentIndex++
                         selectedOption = null

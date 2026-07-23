@@ -43,10 +43,12 @@ import com.example.english_app.ui.AnimationSettings
 import android.content.Context
 import com.example.english_app.ui.SettingsScreen
 import com.example.english_app.ui.ContactScreen
+import com.example.english_app.ui.LeaderboardScreen
 import com.example.english_app.ui.QuizHubScreen
 import com.example.english_app.ui.QuizScreen
 import com.example.english_app.ui.PilotTestScreen
 import com.example.english_app.ui.AdminPanelScreen
+import com.example.english_app.ui.OnboardingScreen
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.mutableFloatStateOf
@@ -142,6 +144,10 @@ class MainActivity : ComponentActivity() {
                 
                 val isLoggedIn = googleAccountInfo != null || firebaseUser != null
 
+                val prefsApp = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                var hasSeenOnboarding by remember { mutableStateOf(prefsApp.getBoolean("has_seen_onboarding", false)) }
+                val startRoute = if (hasSeenOnboarding) "login" else "onboarding"
+
                 // Load user profile when logged in
                 LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
@@ -156,6 +162,7 @@ class MainActivity : ComponentActivity() {
                     googleAccountInfo?.let { _ ->
                         navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
+                            popUpTo("onboarding") { inclusive = true }
                         }
                         googleAccountInfoState.value = null // Reset
                     }
@@ -167,9 +174,26 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "login",
+                        startDestination = startRoute,
                         modifier = Modifier
                     ) {
+                        composable(
+                            route = "onboarding",
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) {
+                            OnboardingScreen(
+                                onFinish = {
+                                    prefsApp.edit().putBoolean("has_seen_onboarding", true).apply()
+                                    hasSeenOnboarding = true
+                                    navController.navigate("login") {
+                                        popUpTo("onboarding") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
                         composable(
                             route = "login",
                             enterTransition = { slideInHorizontally { it } },
@@ -317,7 +341,8 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onBack = { navController.popBackStack() },
                                 onSettings = { navController.navigate("settings") },
-                                onContact = { navController.navigate("contact") }
+                                onContact = { navController.navigate("contact") },
+                                onLeaderboard = { navController.navigate("leaderboard") }
                             )
                         }
                         composable(
@@ -418,6 +443,18 @@ class MainActivity : ComponentActivity() {
                                 onBack = { navController.popBackStack() },
                                 teacherDepartment = userProfile.department,
                                 isAdmin = userProfile.role == "admin" || userProfile.role == "teacher"
+                            )
+                        }
+                        composable(
+                            route = "leaderboard",
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) {
+                            LeaderboardScreen(
+                                onBack = { navController.popBackStack() },
+                                userDepartment = userProfile.department
                             )
                         }
                     }
