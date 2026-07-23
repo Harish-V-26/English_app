@@ -140,6 +140,7 @@ fun CarouselScreen(
                 )
             )
         },
+<<<<<<< HEAD
         floatingActionButton = {
             var showNavigationOptions by remember { mutableStateOf(false) }
 
@@ -207,6 +208,9 @@ fun CarouselScreen(
                 }
             }
         }
+=======
+        floatingActionButton = {}
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -240,6 +244,7 @@ fun CarouselScreen(
                 },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+<<<<<<< HEAD
             // Scrollable content
             Column(
                 modifier = Modifier
@@ -247,6 +252,13 @@ fun CarouselScreen(
                     .verticalScroll(rememberScrollState())
                     .fillMaxWidth()
                     .padding(bottom = 80.dp), // Add padding for FAB
+=======
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Progress indicator
@@ -277,11 +289,17 @@ fun CarouselScreen(
                     },
                     categoryId = category.id,
                     useRandomDirections = animationSettings.useRandomDirections,
+<<<<<<< HEAD
                     animationStyle = animationSettings.animationStyle
+=======
+                    animationStyle = animationSettings.animationStyle,
+                    modifier = Modifier.weight(1f)
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 )
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
+<<<<<<< HEAD
                 // Action buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -322,6 +340,54 @@ fun CarouselScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
+=======
+                // Action buttons (Previous / Next)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = {
+                            if (currentWordIndex > 0) {
+                                currentWordIndex--
+                                isFavorite = false
+                                difficultyRating = 0
+                                showDetails = false
+                            }
+                        },
+                        enabled = currentWordIndex > 0,
+                        colors = ButtonDefaults.buttonColors(containerColor = VibrantGreen),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f).height(50.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.NavigateBefore, contentDescription = "Previous")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Previous", fontWeight = FontWeight.Bold)
+                    }
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    Button(
+                        onClick = {
+                            if (currentWordIndex < words.size - 1) {
+                                currentWordIndex++
+                                isFavorite = false
+                                difficultyRating = 0
+                                showDetails = false
+                            }
+                        },
+                        enabled = currentWordIndex < words.size - 1,
+                        colors = ButtonDefaults.buttonColors(containerColor = VibrantGreen),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f).height(50.dp)
+                    ) {
+                        Text("Next", fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = "Next")
+                    }
+                }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 // Additional navigation info
                 Text(
                     text = "💡 Swipe left/right or use buttons to navigate",
@@ -331,6 +397,7 @@ fun CarouselScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
+<<<<<<< HEAD
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -355,6 +422,8 @@ fun CarouselScreen(
                     }
                 }
             )
+=======
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         }
     }
 }
@@ -401,16 +470,28 @@ fun WordCard(
     onSpeakWord: (String) -> Unit,
     categoryId: String,
     useRandomDirections: Boolean,
+<<<<<<< HEAD
     animationStyle: Int
+=======
+    animationStyle: Int,
+    modifier: Modifier = Modifier
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 ) {
     var directionIndex by remember { mutableIntStateOf(0) }
     var chosenDirection by remember { mutableIntStateOf(0) } // 0: left, 1: right, 2: top, 3: bottom
     
     Card(
+<<<<<<< HEAD
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .shadow(12.dp, RoundedCornerShape(20.dp)),
+=======
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .shadow(4.dp, RoundedCornerShape(20.dp)),
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -419,11 +500,83 @@ fun WordCard(
         Column(
             modifier = Modifier.padding(24.dp)
         ) {
+<<<<<<< HEAD
             // Word image (no animations)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(340.dp)
+=======
+            // Header with word, meaning, and speaker
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                    // Word
+                    if (animationStyle == 2) {
+                        TypewriterText(
+                            text = word.word,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            key = "word-${word.word}"
+                        )
+                    } else {
+                        Text(
+                            text = word.word,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    // Meaning
+                    if (animationStyle == 2) {
+                        TypewriterText(
+                            text = word.definition,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 22.sp,
+                            key = "def-${word.word}"
+                        )
+                    } else {
+                        Text(
+                            text = word.definition,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 22.sp
+                        )
+                    }
+                }
+                
+                // Speaker icon (AI Voice)
+                IconButton(
+                    onClick = { onSpeakWord(word.word) },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                        contentDescription = "Pronounce",
+                        tint = VibrantGreen,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f), thickness = 1.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Word image (expands to fill space, preventing scroll)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     .clip(RoundedCornerShape(12.dp))
             ) {
                 if (word.imageUrl.isBlank()) {
@@ -448,6 +601,7 @@ fun WordCard(
                         ),
                         contentDescription = "Image for ${word.word}",
                         modifier = Modifier.fillMaxSize(),
+<<<<<<< HEAD
                         contentScale = ContentScale.Fit
                     )
                 }
@@ -634,6 +788,55 @@ fun WordCard(
                         onRatingChange = onDifficultyChange
                     )
                 }
+=======
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                
+                // Favorite Button Overlay
+                IconButton(
+                    onClick = onFavoriteToggle,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(12.dp)
+                        .background(Color.White.copy(alpha = 0.85f), shape = androidx.compose.foundation.shape.CircleShape)
+                        .size(44.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) VibrantPink else Color.Gray,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f), thickness = 1.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Sentence
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if (animationStyle == 2) {
+                    TypewriterText(
+                        text = word.example,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 24.sp,
+                        fontStyle = FontStyle.Italic,
+                        key = "ex-${word.word}"
+                    )
+                } else {
+                    Text(
+                        text = word.example,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 24.sp,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+            }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         }
     }
 }

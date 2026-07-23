@@ -128,12 +128,22 @@ object UserProgressRepository {
         }
     }
 
+<<<<<<< HEAD
     /** Loads user profile data. */
+=======
+    /** Loads user profile data. If no profile document exists yet (e.g. a user who
+     *  signed in with Google and never went through Sign Up), one is created here
+     *  with sensible defaults so they still get a `department`/`role` field and
+     *  show up correctly once they set their department in Settings. Without this,
+     *  such users' quiz results would be saved but invisible to the Admin Panel,
+     *  since there'd be no `department` to group them under. */
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     fun loadUserProfile(onResult: (UserProfile) -> Unit) {
         val uid = currentUid() ?: run {
             onResult(UserProfile())
             return
         }
+<<<<<<< HEAD
         db.collection("users").document(uid).get()
             .addOnSuccessListener { doc ->
                 val profile = UserProfile(
@@ -144,11 +154,136 @@ object UserProgressRepository {
                     email = doc.getString("email") ?: ""
                 )
                 onResult(profile)
+=======
+        val userDocRef = db.collection("users").document(uid)
+        userDocRef.get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    val profile = UserProfile(
+                        name = doc.getString("name") ?: "",
+                        rollNo = doc.getString("rollNo") ?: "",
+                        department = doc.getString("department") ?: "",
+                        role = doc.getString("role") ?: "student",
+                        email = doc.getString("email") ?: "",
+                        lastLoginDate = doc.getLong("lastLoginDate") ?: 0L,
+                        currentStreak = (doc.getLong("currentStreak") ?: 0L).toInt(),
+                        badges = (doc.get("badges") as? List<String>) ?: emptyList()
+                    )
+                    
+                    val updatedProfile = calculateStreak(profile)
+                    if (updatedProfile != profile) {
+                        saveStreakAndBadges(uid, updatedProfile)
+                    }
+                    onResult(updatedProfile)
+                } else {
+                    val fallbackName = FirebaseAuth.getInstance().currentUser?.displayName ?: ""
+                    val fallbackEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
+                    val newProfile = UserProfile(
+                        name = fallbackName,
+                        rollNo = "",
+                        department = "",
+                        role = "student",
+                        email = fallbackEmail,
+                        lastLoginDate = System.currentTimeMillis(),
+                        currentStreak = 1,
+                        badges = emptyList()
+                    )
+                    userDocRef.set(
+                        mapOf(
+                            "name" to newProfile.name,
+                            "rollNo" to newProfile.rollNo,
+                            "department" to newProfile.department,
+                            "role" to newProfile.role,
+                            "email" to newProfile.email,
+                            "uid" to uid,
+                            "lastLoginDate" to newProfile.lastLoginDate,
+                            "currentStreak" to newProfile.currentStreak,
+                            "badges" to newProfile.badges
+                        ),
+                        com.google.firebase.firestore.SetOptions.merge()
+                    )
+                    onResult(newProfile)
+                }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
             }
             .addOnFailureListener {
                 onResult(UserProfile())
             }
     }
+<<<<<<< HEAD
+=======
+
+    private fun calculateStreak(profile: UserProfile): UserProfile {
+        val now = System.currentTimeMillis()
+        val calendar = java.util.Calendar.getInstance()
+        
+        calendar.timeInMillis = now
+        val currentDay = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+        val currentYear = calendar.get(java.util.Calendar.YEAR)
+        
+        if (profile.lastLoginDate == 0L) {
+            return profile.copy(lastLoginDate = now, currentStreak = 1)
+        }
+
+        calendar.timeInMillis = profile.lastLoginDate
+        val lastDay = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+        val lastYear = calendar.get(java.util.Calendar.YEAR)
+
+        if (currentYear == lastYear && currentDay == lastDay) {
+            return profile // Already logged in today
+        }
+
+        val isNextDay = (currentYear == lastYear && currentDay == lastDay + 1) ||
+                        (currentYear == lastYear + 1 && currentDay == 1 && lastDay >= 365)
+                        
+        val newStreak = if (isNextDay) profile.currentStreak + 1 else 1
+        
+        val newBadges = profile.badges.toMutableList()
+        if (newStreak >= 3 && !newBadges.contains("3-Day Streak")) newBadges.add("3-Day Streak")
+        if (newStreak >= 7 && !newBadges.contains("7-Day Streak")) newBadges.add("7-Day Streak")
+        if (newStreak >= 30 && !newBadges.contains("30-Day Streak")) newBadges.add("30-Day Streak")
+        
+        return profile.copy(lastLoginDate = now, currentStreak = newStreak, badges = newBadges)
+    }
+
+    private fun saveStreakAndBadges(uid: String, profile: UserProfile) {
+        db.collection("users").document(uid).update(
+            mapOf(
+                "lastLoginDate" to profile.lastLoginDate,
+                "currentStreak" to profile.currentStreak,
+                "badges" to profile.badges
+            )
+        )
+    }
+
+    /** Fetches the top students for a given department based on their current streak */
+    fun getTopStudentsByStreak(department: String, limit: Int = 10, onResult: (List<UserProfile>) -> Unit) {
+        db.collection("users")
+            .whereEqualTo("role", "student")
+            .whereEqualTo("department", department)
+            .orderBy("currentStreak", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(limit.toLong())
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val students = snapshot.documents.mapNotNull { doc ->
+                    UserProfile(
+                        name = doc.getString("name") ?: "",
+                        rollNo = doc.getString("rollNo") ?: "",
+                        department = doc.getString("department") ?: "",
+                        role = doc.getString("role") ?: "student",
+                        email = doc.getString("email") ?: "",
+                        lastLoginDate = doc.getLong("lastLoginDate") ?: 0L,
+                        currentStreak = (doc.getLong("currentStreak") ?: 0L).toInt(),
+                        badges = (doc.get("badges") as? List<String>) ?: emptyList()
+                    )
+                }
+                onResult(students)
+            }
+            .addOnFailureListener {
+                onResult(emptyList())
+            }
+    }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     // ─── Quiz Results (Detailed) ───────────────────────────────────
 
     /** Records a quiz result with detailed per-question answers. */
@@ -159,6 +294,7 @@ object UserProgressRepository {
         total: Int,
         answers: List<QuizAnswerDetail> = emptyList()
     ) {
+<<<<<<< HEAD
         android.util.Log.d("Dashboard", "recordQuizResult called: $categoryId score=$score/$total uid=${auth.currentUser?.uid}")
         withUid { uid ->
             val answerMaps = answers.map { answer ->
@@ -194,6 +330,59 @@ object UserProgressRepository {
                 }
                 .addOnFailureListener { e -> android.util.Log.e("Dashboard", "❌ Failed to save quiz result: ${e.message}") }
         }
+=======
+        // IMPORTANT: unlike other progress writes (favorites/bookmarks), quiz
+        // results must be tied to a real, named signed-in student account for
+        // the Admin Panel's department reports to ever find them. `withUid`
+        // silently signs in an anonymous ghost user if nobody is signed in --
+        // that's fine for casual guest browsing, but it was quietly eating
+        // quiz scores (attributed to a throwaway UID with no department/role,
+        // so it could never show up for any admin) whenever this got called
+        // during a moment with no real signed-in user -- e.g. right around an
+        // account switch. So quiz results specifically require a real user.
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            android.util.Log.e(
+                "Dashboard",
+                "recordQuizResult: no signed-in user -- result NOT saved " +
+                    "(this used to silently save to an anonymous ghost account instead)"
+            )
+            return
+        }
+        android.util.Log.d("Dashboard", "recordQuizResult called: $categoryId score=$score/$total uid=$uid")
+        val answerMaps = answers.map { answer ->
+            mapOf(
+                "word" to answer.word,
+                "correctAnswer" to answer.correctAnswer,
+                "userAnswer" to answer.userAnswer,
+                "isCorrect" to answer.isCorrect
+            )
+        }
+        val entry = mapOf(
+            "categoryId" to categoryId,
+            "categoryTitle" to categoryTitle,
+            "score" to score,
+            "total" to total,
+            "timestamp" to System.currentTimeMillis(),
+            "answers" to answerMaps
+        )
+        android.util.Log.d("Dashboard", "Saving quiz result to Firestore under uid=$uid")
+        quizResultsCollection(uid).add(entry)
+            .addOnSuccessListener {
+                android.util.Log.d("Dashboard", "✅ Quiz result saved successfully!")
+                // Also append a summarized version to the user's document for Admin Panel
+                val simplifiedResult = mapOf(
+                    "categoryTitle" to categoryTitle,
+                    "score" to score,
+                    "total" to total,
+                    "timestamp" to System.currentTimeMillis()
+                )
+                db.collection("users").document(uid)
+                    .set(mapOf("testResults" to FieldValue.arrayUnion(simplifiedResult)), com.google.firebase.firestore.SetOptions.merge())
+                    .addOnFailureListener { e -> android.util.Log.e("Dashboard", "❌ Failed to update testResults in user doc: ${e.message}") }
+            }
+            .addOnFailureListener { e -> android.util.Log.e("Dashboard", "❌ Failed to save quiz result: ${e.message}") }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     }
 
     /** Loads all detailed quiz results for the current user. */
@@ -237,6 +426,7 @@ object UserProgressRepository {
 
     // ─── Admin Panel ───────────────────────────────────────────────
 
+<<<<<<< HEAD
     /** Fetches all students in a given department and their quiz results. */
     fun getDepartmentStudentReports(
         department: String,
@@ -247,6 +437,34 @@ object UserProgressRepository {
             .get()
             .addOnSuccessListener { allDocs ->
                 val userDocs = allDocs.filter { it.getString("role") == "student" }
+=======
+    /** Fetches all students in a given department and their quiz results.
+     *  [onError] fires on genuine failures (e.g. Firestore permission denied)
+     *  so the UI can tell "permission problem" apart from "really no data". */
+    fun getDepartmentStudentReports(
+        department: String,
+        onResult: (List<StudentReport>) -> Unit,
+        onError: (String) -> Unit = {}
+    ) {
+        db.collection("users")
+            .whereEqualTo("department", department)
+            .get(com.google.firebase.firestore.Source.SERVER)
+            .addOnSuccessListener { allDocs ->
+                val userDocs = allDocs.filter { it.getString("role") == "student" }
+                
+                // --- DEBUG TOAST ---
+                val totalCount = allDocs.size()
+                val studentCount = userDocs.size
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(
+                        com.google.firebase.FirebaseApp.getInstance().applicationContext,
+                        "DEBUG: Found $totalCount users in $department ($studentCount are Students)",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+                // -------------------
+
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 if (userDocs.isEmpty()) {
                     onResult(emptyList())
                     return@addOnSuccessListener
@@ -305,6 +523,21 @@ object UserProgressRepository {
                                 val total = (doc.getLong("total") ?: 0L).toInt()
                                 val catTitle = doc.getString("categoryTitle") ?: ""
                                 val ts = doc.getLong("timestamp") ?: 0L
+<<<<<<< HEAD
+=======
+                                
+                                val rawAnswers = doc.get("answers") as? List<*> ?: emptyList<Any>()
+                                val parsedAnswers = rawAnswers.mapNotNull { item ->
+                                    val map = item as? Map<*, *> ?: return@mapNotNull null
+                                    QuizAnswerDetail(
+                                        word = map["word"] as? String ?: "",
+                                        correctAnswer = map["correctAnswer"] as? String ?: "",
+                                        userAnswer = map["userAnswer"] as? String ?: "",
+                                        isCorrect = map["isCorrect"] as? Boolean ?: false
+                                    )
+                                }
+                                
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                                 totalScore += score
                                 totalQuestions += total
                                 testResults.add(
@@ -312,7 +545,12 @@ object UserProgressRepository {
                                         categoryTitle = catTitle,
                                         score = score,
                                         total = total,
+<<<<<<< HEAD
                                         timestamp = ts
+=======
+                                        timestamp = ts,
+                                        answers = parsedAnswers
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                                     )
                                 )
                             }
@@ -336,23 +574,54 @@ object UserProgressRepository {
                         }
                 }
             }
+<<<<<<< HEAD
             .addOnFailureListener {
+=======
+            .addOnFailureListener { e ->
+                android.util.Log.e("AdminPanel", "getDepartmentStudentReports failed: ${e.message}")
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(
+                        com.google.firebase.FirebaseApp.getInstance().applicationContext,
+                        "DEBUG ERROR: ${e.message}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+                onError(e.message ?: "Unknown error loading student reports")
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 onResult(emptyList())
             }
     }
 
+<<<<<<< HEAD
     /** Fetches all unique departments from the users collection. */
     fun loadAllDepartments(onResult: (List<String>) -> Unit) {
         db.collection("users")
             .get()
+=======
+    /** Fetches all unique departments from the users collection.
+     *  [onError] fires on genuine failures (e.g. Firestore permission denied). */
+    fun loadAllDepartments(onResult: (List<String>) -> Unit, onError: (String) -> Unit = {}) {
+        db.collection("users")
+            .whereEqualTo("role", "student")
+            .get(com.google.firebase.firestore.Source.SERVER)
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
             .addOnSuccessListener { docs ->
                 val departments = docs.mapNotNull { it.getString("department") }
                     .filter { it.isNotBlank() }
                     .distinct()
                     .sorted()
+<<<<<<< HEAD
                 onResult(departments)
             }
             .addOnFailureListener {
+=======
+                android.util.Log.d("AdminPanel", "loadAllDepartments: found ${departments.size} departments from ${docs.size()} student docs")
+                onResult(departments)
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e("AdminPanel", "loadAllDepartments failed: ${e.message}")
+                onError(e.message ?: "Unknown error loading departments")
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 onResult(emptyList())
             }
     }
@@ -508,7 +777,14 @@ data class UserProfile(
     val rollNo: String = "",
     val department: String = "",
     val role: String = "student",
+<<<<<<< HEAD
     val email: String = ""
+=======
+    val email: String = "",
+    val lastLoginDate: Long = 0L,
+    val currentStreak: Int = 0,
+    val badges: List<String> = emptyList()
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 )
 
 data class QuizAnswerDetail(
@@ -539,5 +815,10 @@ data class StudentTestResult(
     val categoryTitle: String = "",
     val score: Int = 0,
     val total: Int = 0,
+<<<<<<< HEAD
     val timestamp: Long = 0L
+=======
+    val timestamp: Long = 0L,
+    val answers: List<QuizAnswerDetail> = emptyList()
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 )

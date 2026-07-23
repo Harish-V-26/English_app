@@ -1,19 +1,32 @@
 {
   "project_info": {
+<<<<<<< HEAD
     "project_number": "331963078820",
     "project_id": "english-learn-app-66aac",
     "storage_bucket": "english-learn-app-66aac.firebasestorage.app"
+=======
+    "project_number": "601582889258",
+    "project_id": "english-firebase-a38bd",
+    "storage_bucket": "english-firebase-a38bd.firebasestorage.app"
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
   },
   "client": [
     {
       "client_info": {
+<<<<<<< HEAD
         "mobilesdk_app_id": "1:331963078820:android:67bd3e3053662025446e31",
         "android_client_info": {
           "package_name": "English.Learn.App"
+=======
+        "mobilesdk_app_id": "1:601582889258:android:ca40082e6037f98cf6d653",
+        "android_client_info": {
+          "package_name": "com.example.english_app"
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         }
       },
       "oauth_client": [
         {
+<<<<<<< HEAD
           "client_id": "331963078820-su0cr1s37v9vlaphfp5djse597tm91bc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -23,19 +36,38 @@
         },
         {
           "client_id": "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com",
+=======
+          "client_id": "601582889258-n37aorvabk7o2qhr78kd3kilt01hg98c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.english_app",
+            "certificate_hash": "40a0b4335582b666076c73faeffc8899ad5fd9d9"
+          }
+        },
+        {
+          "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
           "client_type": 3
         }
       ],
       "api_key": [
         {
+<<<<<<< HEAD
           "current_key": "AIzaSyBRs2I8B5rRQSDpAllhOE_zC8upjGXcPcY"
+=======
+          "current_key": "AIzaSyA7P3RP9_kcBKQAC03y2Mw9LIY_T4LMiZ8"
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
+<<<<<<< HEAD
               "client_id": "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com",
+=======
+              "client_id": "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com",
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
               "client_type": 3
             }
           ]

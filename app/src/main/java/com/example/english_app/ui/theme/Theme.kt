@@ -14,6 +14,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.runtime.CompositionLocalProvider
+<<<<<<< HEAD
+=======
+import androidx.compose.material3.Shapes
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.graphics.toArgb
+
+// Generously rounded corners app-wide for the playful, polished look —
+// components that don't explicitly override `shape =` will pick these up.
+val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp)
+)
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 
 private val DarkColorScheme = darkColorScheme(
     primary = VibrantBlue,
@@ -66,9 +86,25 @@ fun ENGLISH_APPTheme(
     val currentDensity = LocalDensity.current
     val customDensity = Density(density = currentDensity.density, fontScale = currentDensity.fontScale * fontScale)
 
+<<<<<<< HEAD
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+=======
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        shapes = AppShapes,
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         content = {
             CompositionLocalProvider(LocalDensity provides customDensity) {
                 content()

@@ -1,10 +1,18 @@
 package com.example.english_app.ui
 
 import androidx.compose.foundation.background
+<<<<<<< HEAD
+=======
+import androidx.compose.foundation.border
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+<<<<<<< HEAD
+=======
+import androidx.compose.material.icons.filled.Check
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -163,6 +171,7 @@ fun QuizScreen(
 
             question.options.forEachIndexed { index, option ->
                 val isSelected = selectedOption == index
+<<<<<<< HEAD
                 val isCorrectOption = index == question.correctIndex
 
                 val containerColor = when {
@@ -182,12 +191,30 @@ fun QuizScreen(
                     }
                     else -> null
                 }
+=======
+                
+                val containerColor by androidx.compose.animation.animateColorAsState(
+                    targetValue = if (isSelected) category.color.copy(alpha = 0.15f) else Color.White,
+                    label = "colorAnim"
+                )
+                
+                val borderWidth by androidx.compose.animation.core.animateDpAsState(
+                    targetValue = if (isSelected) 2.dp else 0.dp,
+                    label = "borderAnim"
+                )
+                
+                val elevation by androidx.compose.animation.core.animateDpAsState(
+                    targetValue = if (isSelected) 6.dp else 2.dp,
+                    label = "elevationAnim"
+                )
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
                     colors = CardDefaults.cardColors(containerColor = containerColor),
+<<<<<<< HEAD
                     border = borderStroke,
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -204,12 +231,50 @@ fun QuizScreen(
                                 )
                             )
                         }
+=======
+                    border = if (borderWidth > 0.dp) BorderStroke(borderWidth, category.color) else null,
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+                    onClick = {
+                        // Allow users to deselect the chosen answer by tapping it again
+                        selectedOption = if (selectedOption == index) null else index
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     }
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+<<<<<<< HEAD
+=======
+                        // Custom animated radio button / check circle indicator
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(
+                                    color = if (isSelected) category.color else Color.Transparent,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = if (isSelected) category.color else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                         Text(text = option, fontSize = 15.sp, color = Color.Black)
                     }
                 }
@@ -219,6 +284,22 @@ fun QuizScreen(
 
             Button(
                 onClick = {
+<<<<<<< HEAD
+=======
+                    selectedOption?.let { selIndex ->
+                        val isCorrect = selIndex == question.correctIndex
+                        if (isCorrect) score++
+                        userAnswers.add(
+                            QuizAnswerDetail(
+                                word = question.word.word,
+                                correctAnswer = question.options[question.correctIndex],
+                                userAnswer = question.options[selIndex],
+                                isCorrect = isCorrect
+                            )
+                        )
+                    }
+
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     if (currentIndex < questions.size - 1) {
                         currentIndex++
                         selectedOption = null
@@ -258,12 +339,33 @@ fun QuizResultView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+<<<<<<< HEAD
         Icon(
             imageVector = Icons.Default.Star,
             contentDescription = "Result",
             tint = color,
             modifier = Modifier.size(64.dp)
         )
+=======
+        val isPerfectScore = score == total && total > 0
+        if (isPerfectScore) {
+            val composition by com.airbnb.lottie.compose.rememberLottieComposition(
+                com.airbnb.lottie.compose.LottieCompositionSpec.Url("https://assets9.lottiefiles.com/packages/lf20_obhph3sh.json")
+            )
+            com.airbnb.lottie.compose.LottieAnimation(
+                composition = composition,
+                iterations = 1,
+                modifier = Modifier.size(150.dp)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "Result",
+                tint = color,
+                modifier = Modifier.size(64.dp)
+            )
+        }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "You scored $score / $total",

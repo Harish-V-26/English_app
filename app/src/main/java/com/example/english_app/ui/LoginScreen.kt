@@ -187,6 +187,7 @@ fun LoginScreen(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+<<<<<<< HEAD
                 Spacer(modifier = Modifier.height(40.dp))
                 // College logo and name at the top
                 Row(
@@ -257,6 +258,43 @@ fun LoginScreen(
                 Text(
                     text = "Welcome Back!",
                     style = MaterialTheme.typography.titleLarge,
+=======
+                Spacer(modifier = Modifier.height(60.dp))
+                // College name at the top
+                Text(
+                    text = "Sri Ramakrishna College of Arts & Science",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
+                // College logo
+                Card(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .shadow(6.dp, RoundedCornerShape(24.dp)),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.clg),
+                        contentDescription = "SRCAS Shield Logo",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            
+                Spacer(modifier = Modifier.height(24.dp))
+            
+                Text(
+                    text = "Welcome Back!",
+                    style = MaterialTheme.typography.headlineLarge,
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     textAlign = TextAlign.Center
@@ -264,18 +302,30 @@ fun LoginScreen(
             
                 Text(
                     text = "Sign in to continue your English journey",
+<<<<<<< HEAD
                     style = MaterialTheme.typography.bodyMedium,
+=======
+                    style = MaterialTheme.typography.bodyLarge,
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     color = Color.White.copy(alpha = 0.9f),
                     textAlign = TextAlign.Center
                 )
             
+<<<<<<< HEAD
                 Spacer(modifier = Modifier.height(24.dp))
+=======
+                Spacer(modifier = Modifier.height(40.dp))
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
             
                 // Login form card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
+<<<<<<< HEAD
                         .shadow(20.dp, RoundedCornerShape(20)),
+=======
+                        .shadow(6.dp, RoundedCornerShape(20)),
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(20)
                 ) {
