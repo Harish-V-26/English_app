@@ -119,11 +119,13 @@ fun OnboardingPageContent(pageData: OnboardingPage) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        val composition by rememberLottieComposition(LottieCompositionSpec.Url(pageData.lottieUrl))
-        val progress by animateLottieCompositionAsState(
+        val compositionResult = rememberLottieComposition(LottieCompositionSpec.Url(pageData.lottieUrl))
+        val composition = compositionResult.value
+        val progressState = animateLottieCompositionAsState(
             composition = composition,
             iterations = LottieConstants.IterateForever
         )
+        val progress = progressState.value
 
         LottieAnimation(
             composition = composition,

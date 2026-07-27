@@ -10,11 +10,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-<<<<<<< HEAD
         applicationId = "English.Learn.App"
-=======
-        applicationId = "com.example.english_app"
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -67,9 +63,5 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-<<<<<<< HEAD
-=======
     implementation(libs.lottie.compose)
-    implementation(libs.datastore.preferences)
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 }

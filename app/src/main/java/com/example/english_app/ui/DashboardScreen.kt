@@ -53,23 +53,10 @@ fun DashboardScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit,
     onSettings: () -> Unit,
-<<<<<<< HEAD
     onContact: () -> Unit
 ) {
     var stats by remember { mutableStateOf(DashboardStats()) }
     var detailedResults by remember { mutableStateOf<List<DetailedQuizResult>>(emptyList()) }
-=======
-    onContact: () -> Unit,
-    onLeaderboard: () -> Unit
-) {
-    var stats by remember { mutableStateOf(DashboardStats()) }
-    var detailedResults by remember { mutableStateOf<List<DetailedQuizResult>>(emptyList()) }
-    var profile by remember { mutableStateOf(com.example.english_app.data.UserProfile()) }
-
-    LaunchedEffect(Unit) {
-        UserProgressRepository.loadUserProfile { p -> profile = p }
-    }
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 
     DisposableEffect(Unit) {
         val listener = UserProgressRepository.observeDashboardStats { loaded ->
@@ -181,16 +168,7 @@ fun DashboardScreen(
                 ) {
                     // User Profile Section
                     item {
-<<<<<<< HEAD
                         UserProfileSection(userName, userEmail, userPhotoUrl)
-=======
-                        UserProfileSection(userName, userEmail, userPhotoUrl, profile)
-                    }
-
-                    // Quick Actions
-                    item {
-                        QuickActions(onNavigateToHome, onLeaderboard)
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     }
 
                     // Progress Stats
@@ -233,11 +211,7 @@ fun TodaysChallenge(floatingOffset: Float, stats: DashboardStats) {
         modifier = Modifier
             .fillMaxWidth()
             .offset(y = floatingOffset.dp)
-<<<<<<< HEAD
             .shadow(8.dp, RoundedCornerShape(16.dp)),
-=======
-            .shadow(3.dp, RoundedCornerShape(16.dp)),
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE0B2))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -416,11 +390,7 @@ fun ProgressBarWidget(label: String, progress: Float, color: Color) {
 }
 
 @Composable
-<<<<<<< HEAD
 fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String?) {
-=======
-fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String?, profile: com.example.english_app.data.UserProfile) {
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -458,11 +428,7 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
-<<<<<<< HEAD
             Column {
-=======
-            Column(modifier = Modifier.weight(1f)) {
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 Text(
                     text = "Welcome back, $userName!",
                     fontSize = 18.sp,
@@ -475,14 +441,6 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-<<<<<<< HEAD
-=======
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("🔥", fontSize = 24.sp)
-                Text("${profile.currentStreak} Day${if (profile.currentStreak == 1) "" else "s"}", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text("Streak", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
         }
     }
 }
@@ -559,11 +517,7 @@ fun ProgressStat(title: String, current: String, total: String, progress: Float,
 }
 
 @Composable
-<<<<<<< HEAD
 fun QuickActions(onNavigateToHome: () -> Unit) {
-=======
-fun QuickActions(onNavigateToHome: () -> Unit, onLeaderboard: () -> Unit) {
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -591,15 +545,9 @@ fun QuickActions(onNavigateToHome: () -> Unit, onLeaderboard: () -> Unit) {
                     color = VibrantBlue
                 )
                 QuickActionButton(
-<<<<<<< HEAD
                     icon = Icons.Default.Add,
                     text = "Add Word",
                     onClick = { /* TODO */ },
-=======
-                    icon = Icons.Default.EmojiEvents, // Trophy icon
-                    text = "Leaderboard",
-                    onClick = onLeaderboard,
->>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     color = VibrantGreen
                 )
                 QuickActionButton(
