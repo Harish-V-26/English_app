@@ -1,6 +1,10 @@
 package com.example.english_app.ui
 
 import androidx.compose.foundation.background
+<<<<<<< HEAD
+=======
+import androidx.compose.foundation.clickable
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -119,6 +123,26 @@ fun SettingsScreen(
                     )
                     
                     var editDepartment by remember(userProfile.department) { mutableStateOf(userProfile.department) }
+<<<<<<< HEAD
+=======
+                    var editDepartmentExpanded by remember { mutableStateOf(false) }
+                    val departmentOptions = listOf(
+                        "Computer Science",
+                        "Computer Applications",
+                        "English",
+                        "Commerce",
+                        "Business Administration",
+                        "Mathematics",
+                        "Physics",
+                        "Chemistry",
+                        "Botany",
+                        "Zoology",
+                        "Visual Communication",
+                        "Tamil",
+                        "Economics",
+                        "History"
+                    )
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     
                     Row(
                         modifier = Modifier
@@ -126,6 +150,7 @@ fun SettingsScreen(
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+<<<<<<< HEAD
                         OutlinedTextField(
                             value = editDepartment,
                             onValueChange = { editDepartment = it },
@@ -137,6 +162,48 @@ fun SettingsScreen(
                                 focusedLabelColor = VibrantGreen
                             )
                         )
+=======
+                        Box(modifier = Modifier.weight(1f)) {
+                            OutlinedTextField(
+                                value = editDepartment,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Update Department") },
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = if (editDepartmentExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                        contentDescription = "Dropdown",
+                                        tint = VibrantGreen
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = VibrantGreen,
+                                    focusedLabelColor = VibrantGreen
+                                )
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { editDepartmentExpanded = !editDepartmentExpanded }
+                            )
+                            DropdownMenu(
+                                expanded = editDepartmentExpanded,
+                                onDismissRequest = { editDepartmentExpanded = false }
+                            ) {
+                                departmentOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option) },
+                                        onClick = {
+                                            editDepartment = option
+                                            editDepartmentExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
                             onClick = {

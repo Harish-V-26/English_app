@@ -1,5 +1,9 @@
 [versions]
+<<<<<<< HEAD
 agp = "8.7.3"
+=======
+agp = "8.13.2"
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -16,6 +20,11 @@ materialIconsExtended = "1.7.0"
 firebaseAuth = "22.3.1"
 firebaseFirestore = "24.10.3"
 accompanistNavAnim = "0.34.0"
+<<<<<<< HEAD
+=======
+lottieCompose = "6.6.0"
+datastorePreferences = "1.1.2"
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +49,11 @@ material-icons-extended = { group = "androidx.compose.material", name = "materia
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanistNavAnim" }
+<<<<<<< HEAD
+=======
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottieCompose" }
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

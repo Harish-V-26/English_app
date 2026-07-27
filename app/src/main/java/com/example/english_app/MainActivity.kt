@@ -43,16 +43,28 @@ import com.example.english_app.ui.AnimationSettings
 import android.content.Context
 import com.example.english_app.ui.SettingsScreen
 import com.example.english_app.ui.ContactScreen
+<<<<<<< HEAD
+=======
+import com.example.english_app.ui.LeaderboardScreen
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 import com.example.english_app.ui.QuizHubScreen
 import com.example.english_app.ui.QuizScreen
 import com.example.english_app.ui.PilotTestScreen
 import com.example.english_app.ui.AdminPanelScreen
+<<<<<<< HEAD
+=======
+import com.example.english_app.ui.OnboardingScreen
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.mutableFloatStateOf
 import com.example.english_app.data.UserProgressRepository
 import com.example.english_app.data.UserProfile
 
+<<<<<<< HEAD
+=======
+@androidx.compose.material3.ExperimentalMaterial3Api
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -61,7 +73,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+<<<<<<< HEAD
         val webClientId = "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com"
+=======
+        val webClientId = "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com"
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 
         // Google Sign-In setup — request idToken so we can sign into Firebase Auth
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -141,12 +157,28 @@ class MainActivity : ComponentActivity() {
                 
                 val isLoggedIn = googleAccountInfo != null || firebaseUser != null
 
+<<<<<<< HEAD
                 // Load user profile when logged in
                 LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
                         UserProgressRepository.loadUserProfile { profile ->
                             userProfile = profile
                         }
+=======
+                val prefsApp = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                var hasSeenOnboarding by remember { mutableStateOf(prefsApp.getBoolean("has_seen_onboarding", false)) }
+                val startRoute = if (hasSeenOnboarding) "login" else "onboarding"
+
+                // Load user profile when logged in or clear it when logged out
+                LaunchedEffect(firebaseUser?.uid) {
+                    if (firebaseUser != null) {
+                        UserProgressRepository.loadUserProfile { profile ->
+                            userProfile = profile
+                        }
+                    } else {
+                        userProfile = UserProfile()
+                        googleAccountInfoState.value = null
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     }
                 }
 
@@ -155,6 +187,10 @@ class MainActivity : ComponentActivity() {
                     googleAccountInfo?.let { _ ->
                         navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
+<<<<<<< HEAD
+=======
+                            popUpTo("onboarding") { inclusive = true }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                         }
                         googleAccountInfoState.value = null // Reset
                     }
@@ -166,10 +202,34 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
+<<<<<<< HEAD
                         startDestination = "login",
                         modifier = Modifier
                     ) {
                         composable(
+=======
+                        startDestination = startRoute,
+                        modifier = Modifier
+                    ) {
+                        composable(
+                            route = "onboarding",
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) {
+                            OnboardingScreen(
+                                onFinish = {
+                                    prefsApp.edit().putBoolean("has_seen_onboarding", true).apply()
+                                    hasSeenOnboarding = true
+                                    navController.navigate("login") {
+                                        popUpTo("onboarding") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+                        composable(
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                             route = "login",
                             enterTransition = { slideInHorizontally { it } },
                             exitTransition = { slideOutHorizontally { -it } },
@@ -245,6 +305,11 @@ class MainActivity : ComponentActivity() {
                                 category = categories[categoryIndex],
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
+<<<<<<< HEAD
+=======
+                                    FirebaseAuth.getInstance().signOut()
+                                    googleSignInClient.signOut()
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                                     navController.navigate("login") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -288,7 +353,11 @@ class MainActivity : ComponentActivity() {
                                 userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
                                 userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
                                 isLoggedIn = isLoggedIn,
+<<<<<<< HEAD
                                 isAdmin = userProfile.role == "admin"
+=======
+                                isAdmin = userProfile.role == "admin" || userProfile.role == "teacher"
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                             )
                         }
                         composable(
@@ -314,7 +383,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onBack = { navController.popBackStack() },
                                 onSettings = { navController.navigate("settings") },
+<<<<<<< HEAD
                                 onContact = { navController.navigate("contact") }
+=======
+                                onContact = { navController.navigate("contact") },
+                                onLeaderboard = { navController.navigate("leaderboard") }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                             )
                         }
                         composable(
@@ -413,7 +487,24 @@ class MainActivity : ComponentActivity() {
                         ) {
                             AdminPanelScreen(
                                 onBack = { navController.popBackStack() },
+<<<<<<< HEAD
                                 teacherDepartment = userProfile.department
+=======
+                                teacherDepartment = userProfile.department,
+                                isAdmin = userProfile.role == "admin" || userProfile.role == "teacher"
+                            )
+                        }
+                        composable(
+                            route = "leaderboard",
+                            enterTransition = { slideInHorizontally { it } },
+                            exitTransition = { slideOutHorizontally { -it } },
+                            popEnterTransition = { slideInHorizontally { -it } },
+                            popExitTransition = { slideOutHorizontally { it } }
+                        ) {
+                            LeaderboardScreen(
+                                onBack = { navController.popBackStack() },
+                                userDepartment = userProfile.department
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                             )
                         }
                     }

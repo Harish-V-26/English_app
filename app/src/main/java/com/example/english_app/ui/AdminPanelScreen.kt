@@ -51,12 +51,78 @@ private fun exportCsv(context: Context, uri: android.net.Uri, reports: List<Stud
 @Composable
 fun AdminPanelScreen(
     onBack: () -> Unit,
+<<<<<<< HEAD
     teacherDepartment: String = ""
 ) {
+=======
+    teacherDepartment: String = "",
+    isAdmin: Boolean = false
+) {
+    // Real access gate: even if someone reaches this screen via a forged nav
+    // state or deep link, non-admins see nothing but a blocked message here.
+    // (The Admin Panel menu item on Home is already hidden for non-admins —
+    // this is the second, enforced layer. The real, authoritative layer must
+    // still be your Firestore security rules — see note at the bottom of this file.)
+    if (!isAdmin) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Admin Panel", color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = VibrantPurple)
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = "Restricted",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(56.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Admin access only",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "This section is restricted to teacher/admin accounts.",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+        return
+    }
+
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     var departments by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedDepartment by remember { mutableStateOf(teacherDepartment) }
     var reports by remember { mutableStateOf<List<StudentReport>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
+<<<<<<< HEAD
+=======
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     var expandedDropdown by remember { mutableStateOf(false) }
     
     val availableCategories = remember(reports) {
@@ -97,6 +163,7 @@ fun AdminPanelScreen(
         }
     }
 
+<<<<<<< HEAD
     // Load all departments
     LaunchedEffect(Unit) {
         UserProgressRepository.loadAllDepartments { depts ->
@@ -110,6 +177,39 @@ fun AdminPanelScreen(
                 }
             }
         }
+=======
+    // Load all departments then auto-load teacher's data
+    LaunchedEffect(Unit) {
+        // Step 1: If teacher has a department, immediately start loading their students
+        if (selectedDepartment.isNotBlank()) {
+            isLoading = true
+            errorMessage = null
+            UserProgressRepository.getDepartmentStudentReports(
+                department = selectedDepartment,
+                onResult = { result ->
+                    reports = result
+                    isLoading = false
+                },
+                onError = { message ->
+                    errorMessage = message
+                    isLoading = false
+                }
+            )
+        }
+        // Step 2: Load full list of departments for the dropdown
+        UserProgressRepository.loadAllDepartments(
+            onResult = { depts ->
+                // Add teacher's own department to the list if not already there
+                val allDepts = if (selectedDepartment.isNotBlank() && selectedDepartment !in depts) {
+                    (listOf(selectedDepartment) + depts).distinct().sorted()
+                } else depts
+                departments = allDepts
+            },
+            onError = { message ->
+                if (errorMessage == null) errorMessage = message
+            }
+        )
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
     }
 
     Scaffold(
@@ -132,10 +232,25 @@ fun AdminPanelScreen(
                     IconButton(onClick = {
                         if (selectedDepartment.isNotBlank()) {
                             isLoading = true
+<<<<<<< HEAD
                             UserProgressRepository.getDepartmentStudentReports(selectedDepartment) { result ->
                                 reports = result
                                 isLoading = false
                             }
+=======
+                            errorMessage = null
+                            UserProgressRepository.getDepartmentStudentReports(
+                                department = selectedDepartment,
+                                onResult = { result ->
+                                    reports = result
+                                    isLoading = false
+                                },
+                                onError = { message ->
+                                    errorMessage = message
+                                    isLoading = false
+                                }
+                            )
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                         }
                     }) {
                         Icon(
@@ -213,20 +328,34 @@ fun AdminPanelScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
+<<<<<<< HEAD
                 ExposedDropdownMenuBox(
                     expanded = expandedDropdown,
                     onExpandedChange = { expandedDropdown = it }
                 ) {
+=======
+                Box(modifier = Modifier.fillMaxWidth()) {
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     OutlinedTextField(
                         value = selectedDepartment.ifBlank { "Choose a department" },
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = {
+<<<<<<< HEAD
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown)
                         },
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth(),
+=======
+                            Icon(
+                                imageVector = if (expandedDropdown) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                contentDescription = "Dropdown",
+                                tint = VibrantPurple
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = VibrantPurple,
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
@@ -235,9 +364,21 @@ fun AdminPanelScreen(
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
+<<<<<<< HEAD
                     ExposedDropdownMenu(
                         expanded = expandedDropdown,
                         onDismissRequest = { expandedDropdown = false }
+=======
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { expandedDropdown = !expandedDropdown }
+                    )
+                    DropdownMenu(
+                        expanded = expandedDropdown,
+                        onDismissRequest = { expandedDropdown = false },
+                        modifier = Modifier.fillMaxWidth(0.85f)
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                     ) {
                         if (departments.isEmpty()) {
                             DropdownMenuItem(
@@ -252,10 +393,25 @@ fun AdminPanelScreen(
                                     selectedDepartment = dept
                                     expandedDropdown = false
                                     isLoading = true
+<<<<<<< HEAD
                                     UserProgressRepository.getDepartmentStudentReports(dept) { result ->
                                         reports = result
                                         isLoading = false
                                     }
+=======
+                                    errorMessage = null
+                                    UserProgressRepository.getDepartmentStudentReports(
+                                        department = dept,
+                                        onResult = { result ->
+                                            reports = result
+                                            isLoading = false
+                                        },
+                                        onError = { message ->
+                                            errorMessage = message
+                                            isLoading = false
+                                        }
+                                    )
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                                 }
                             )
                         }
@@ -373,13 +529,26 @@ fun AdminPanelScreen(
                     }
                 }
 
+<<<<<<< HEAD
                 // Department Graph
+=======
+                // Per-Student Graph
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     DepartmentPerformanceGraph(filteredReports)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
+<<<<<<< HEAD
+=======
+                // Per-Category Graph
+                item {
+                    CategoryPerformanceGraph(filteredReports)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 // Table Header
                 item {
                     Text(
@@ -416,8 +585,57 @@ fun AdminPanelScreen(
                 }
             }
 
+<<<<<<< HEAD
             // Empty state
             if (!isLoading && selectedDepartment.isNotBlank() && filteredReports.isEmpty()) {
+=======
+            // Error state — distinct from "genuinely no data", e.g. Firestore
+            // permission denied when reading other students' documents. Seeing
+            // this instead of a silent empty list is the whole point of the fix.
+            if (!isLoading && errorMessage != null) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = VibrantRed.copy(alpha = 0.12f)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.ErrorOutline,
+                                    contentDescription = "Error",
+                                    tint = VibrantRed,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Couldn't load student reports",
+                                    fontWeight = FontWeight.Bold,
+                                    color = VibrantRed
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = errorMessage ?: "",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "If this mentions permissions, your Firestore security rules likely don't allow an admin account to read other students' documents yet — that needs a rule change in the Firebase console, not just an app update.",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Empty state
+            if (!isLoading && errorMessage == null && selectedDepartment.isNotBlank() && filteredReports.isEmpty()) {
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                 item {
                     Box(
                         modifier = Modifier
@@ -582,7 +800,11 @@ fun StudentReportRow(report: StudentReport) {
                             val sdf = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault())
                             sdf.format(java.util.Date(test.timestamp))
                         }
+<<<<<<< HEAD
                         Row(
+=======
+                        Column(
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
@@ -590,6 +812,7 @@ fun StudentReportRow(report: StudentReport) {
                                     color = if (testPercent >= 70) Color(0xFFE8F5E9) else if (testPercent >= 40) Color(0xFFFFFDE7) else Color(0xFFFFEBEE),
                                     shape = RoundedCornerShape(8.dp)
                                 )
+<<<<<<< HEAD
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -613,6 +836,55 @@ fun StudentReportRow(report: StudentReport) {
                                 fontWeight = FontWeight.Bold,
                                 color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
                             )
+=======
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = test.categoryTitle,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = dateStr,
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Text(
+                                    text = "${test.score}/${test.total} ($testPercent%)",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
+                                )
+                            }
+                            
+                            if (test.answers.isNotEmpty()) {
+                                val incorrect = test.answers.filter { !it.isCorrect }
+                                if (incorrect.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("Needs Review:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC62828))
+                                    incorrect.forEach { ans ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(ans.word, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface)
+                                            Text("Ans: ${ans.userAnswer}", fontSize = 11.sp, color = Color(0xFFC62828))
+                                        }
+                                    }
+                                } else if (testPercent == 100) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("Perfect score! 🎉", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                }
+                            }
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
                         }
                     }
                 }
@@ -629,6 +901,113 @@ fun StudentReportRow(report: StudentReport) {
 }
 
 @Composable
+<<<<<<< HEAD
+=======
+fun CategoryPerformanceGraph(reports: List<StudentReport>) {
+    // Aggregate every student's test results by category to get a class-wide
+    // average accuracy per category (Advanced Vocabulary, Kitchen Vocabulary, etc.)
+    data class CategoryAgg(var totalScore: Int = 0, var totalQuestions: Int = 0, var attempts: Int = 0)
+    val byCategory = LinkedHashMap<String, CategoryAgg>()
+
+    reports.forEach { report ->
+        report.testResults.forEach { test ->
+            val agg = byCategory.getOrPut(test.categoryTitle) { CategoryAgg() }
+            agg.totalScore += test.score
+            agg.totalQuestions += test.total
+            agg.attempts += 1
+        }
+    }
+
+    if (byCategory.isEmpty()) return
+
+    val categoryPercents = byCategory.entries
+        .map { (title, agg) ->
+            val percent = if (agg.totalQuestions > 0) (agg.totalScore * 100 / agg.totalQuestions) else 0
+            Triple(title, percent, agg.attempts)
+        }
+        .sortedByDescending { it.second }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Average Score by Category",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = "Class-wide accuracy across all attempts, per category",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(categoryPercents) { (title, percent, attempts) ->
+                    val barColor = if (percent >= 70) VibrantGreen else if (percent >= 40) VibrantOrange else VibrantRed
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(56.dp)
+                    ) {
+                        Text(
+                            text = "$percent%",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(0.7f),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(if (percent > 0) (percent / 100f) else 0.03f)
+                                    .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                    .background(barColor)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = title,
+                            fontSize = 9.sp,
+                            maxLines = 2,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.height(24.dp)
+                        )
+                        Text(
+                            text = "$attempts attempt(s)",
+                            fontSize = 8.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 fun DepartmentPerformanceGraph(reports: List<StudentReport>) {
     if (reports.isEmpty()) return
 

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 package com.example.english_app.ui
+=======
+﻿package com.example.english_app.ui
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -84,6 +88,7 @@ val docWords2 = listOf(
 
 // ---------- Document 3: Basic vs Advanced Vocabulary ----------
 val docWords3 = listOf(
+<<<<<<< HEAD
     Word("Colossal", "", "Advanced form of 'big' ΓÇö extremely large.", "I saw a colossal statue in the museum.", "collasal"),
     Word("Myriad", "", "Advanced form of 'many' — a huge, countless number.", "My teacher offered a myriad of information.", "many"),
     Word("Ecstatic", "", "Advanced form of 'happy' ΓÇö overjoyed.", "Priya is ecstatic about her new college.", "ecstatic"),
@@ -119,6 +124,43 @@ val docWords3 = listOf(
     Word("Altercation", "", "Advanced form of 'fight' ΓÇö a noisy argument.", "He had an altercation while bargaining.", "altercation"),
     Word("Vivid", "", "Advanced form of 'bright' ΓÇö intensely colorful.", "She painted using vivid colours.", "vivid"),
     Word("Meander", "", "Advanced form of 'wander' ΓÇö to move slowly with no fixed direction.", "She meandered in the hills.", "mander")
+=======
+    Word("Colossal", "", "Advanced form of 'big' — extremely large.", "I saw a colossal statue in the museum.", "collasal"),
+    Word("Myriad", "", "Advanced form of 'many' — a huge, countless number.", "My teacher offered a myriad of information.", "many"),
+    Word("Ecstatic", "", "Advanced form of 'happy' — overjoyed.", "Priya is ecstatic about her new college.", "ecstatic"),
+    Word("Incensed", "", "Advanced form of 'angry' — very angry.", "The teacher was incensed by the team's grave mistake.", "incensed"),
+    Word("Amble", "", "Advanced form of 'walk' — to walk slowly and relaxed.", "I like to amble along the riverside.", "ambel"),
+    Word("Deplorable", "", "Advanced form of 'bad' — very poor or shocking.", "My friend's hostel was in a deplorable state.", "deplorable"),
+    Word("Pristine", "", "Advanced form of 'new' — spotless, in original condition.", "Her desk is always pristine.", "pristine"),
+    Word("Venerable", "", "Advanced form of 'old' — respected because of age.", "I visited a venerable church in Venice.", "venerable"),
+    Word("Perpetually", "", "Advanced form of 'always' — constantly, without stopping.", "My friend is perpetually worried about her examination.", "perpetually"),
+    Word("Reticent", "", "Advanced form of 'quiet' — reserved, not saying much.", "Vijay is reticent about the recent issue.", "reticent"),
+    Word("Notion", "", "Advanced form of 'idea' — a belief or plan.", "My friend has a notion to travel abroad.", "notion"),
+    Word("Perplexing", "", "Advanced form of 'confusing' — very puzzling.", "Her idea was perplexing.", "perplexing"),
+    Word("Petrified", "", "Advanced form of 'scared' — frozen with fear.", "He was petrified at the sight of a lion in front of him.", "petrified"),
+    Word("Dine", "", "Advanced form of 'eat' — to eat a meal, usually formally.", "They decided to dine at a multi-cuisine restaurant.", "dine"),
+    Word("Recurrently", "", "Advanced form of 'often' — happening again and again.", "He lost his job as he made mistakes recurrently.", "recurrently"),
+    Word("Sporadically", "", "Advanced form of 'sometimes' — occurring at irregular intervals.", "I go to that hotel sporadically.", "sporadically"),
+    Word("Amiable", "", "Advanced form of 'nice' — friendly and pleasant.", "She has a most amiable personality.", "amiable"),
+    Word("Meager", "", "Advanced form of 'little' — very small in amount.", "People got meager food after the disaster.", "meager"),
+    Word("Apprehensive", "", "Advanced form of 'nervous' — anxious about something.", "She felt apprehensive about presenting the seminar.", "apprensive"),
+    Word("Tenuous", "", "Advanced form of 'weak' — flimsy, barely valid.", "They presented tenuous evidence.", "tenuous"),
+    Word("Tardy", "", "Advanced form of 'late' — slow to arrive or act.", "The student was marked tardy for arriving after the bell.", "tardy"),
+    Word("Bestow", "", "Advanced form of 'give' — to formally present something.", "The father bestowed his blessings on his newborn child.", "bestow"),
+    Word("Craft", "", "Advanced form of 'make' — to skillfully create.", "She crafts beautiful jewellery from gold.", "craft"),
+    Word("Lucid", "", "Advanced form of 'clear' — easy to understand.", "Her essay is lucid in style.", "lucid"),
+    Word("Imminently", "", "Advanced form of 'soon' — about to happen very shortly.", "The examinations will commence imminently.", "imminently"),
+    Word("Discourteous", "", "Advanced form of 'rude' — impolite.", "The guest was discourteous to all.", "discourteous"),
+    Word("Engrossed", "", "Advanced form of 'busy' — fully absorbed in something.", "She was engrossed in her video call.", "engrossed"),
+    Word("Surmise", "", "Advanced form of 'guess' — to conclude from limited evidence.", "I surmise he forgot to take his tablet.", "surmise"),
+    Word("Cogitate", "", "Advanced form of 'think' — to think deeply.", "She cogitated on the issue deeply.", "cogitate"),
+    Word("Obstinate", "", "Advanced form of 'stubborn' — unwilling to change one's mind.", "She is obstinate in negotiations.", "obsient"),
+    Word("Negligent", "", "Advanced form of 'careless' — failing to take proper care.", "The security guard was negligent in his duty.", "negligence"),
+    Word("Turmoil", "", "Advanced form of 'trouble' — a state of great disturbance.", "The city was in turmoil after the political rally.", "turmoil"),
+    Word("Altercation", "", "Advanced form of 'fight' — a noisy argument.", "He had an altercation while bargaining.", "altercation"),
+    Word("Vivid", "", "Advanced form of 'bright' — intensely colorful.", "She painted using vivid colours.", "vivid"),
+    Word("Meander", "", "Advanced form of 'wander' — to move slowly with no fixed direction.", "She meandered in the hills.", "mander")
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 )
 
 // ---------- Document 4: Blended Vocabulary ----------
@@ -283,5 +325,9 @@ val docCategories = listOf(
     Category("doc4", "Blended Words", "Portmanteau words formed by blending two words", VibrantPink, Icons.Default.Shuffle, docWords4),
     Category("doc5", "Kitchen Vocabulary", "Cooking tools, spices, and kitchen terms", VibrantGreen, Icons.Default.Kitchen, docWords5),
     Category("doc6", "Movement Vocabulary", "Words describing small actions and gestures", VibrantBlue, Icons.Default.DirectionsRun, docWords6),
+<<<<<<< HEAD
     Category("doc7", "Vocab Twist", "Homographs ΓÇö one word, multiple meanings", VibrantYellow, Icons.Default.SwapHoriz, docWords7)
+=======
+    Category("doc7", "Vocab Twist", "Homographs — one word, multiple meanings", VibrantYellow, Icons.Default.SwapHoriz, docWords7)
+>>>>>>> 73d420b5c198105f2a9f3f976511c9aad67dfa69
 )
