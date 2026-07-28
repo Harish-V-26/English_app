@@ -3,6 +3,7 @@ package com.example.english_app.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -160,6 +161,11 @@ fun HomeScreen(
     isAdmin: Boolean = false
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var currentFolder by remember { mutableStateOf<String?>(null) }
+
+    BackHandler(enabled = currentFolder != null) {
+        currentFolder = null
+    }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     
@@ -395,17 +401,44 @@ fun HomeScreen(
                 // Categories with navigation
                 val filteredCategories = categories.filter { it.title.contains(searchQuery, ignoreCase = true) }
                 if (filteredCategories.isNotEmpty()) {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(filteredCategories) { category ->
-                            EnhancedCategoryCard(
-                                category = category,
-                                onCategorySelected = onCategorySelected,
-                                onSpeakCategory = { 
-                                    tts.speak(category.title, TextToSpeech.QUEUE_FLUSH, null, null)
-                                }
-                            )
+                    if (currentFolder == null) {
+                        val sampleLearnCategory = Category(
+                            id = "sample_learn",
+                            title = "Sample Learn",
+                            description = "Sample learning modules",
+                            color = MaterialTheme.colorScheme.primary,
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            words = emptyList()
+                        )
+                        androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                            columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxWidth().weight(1f)
+                        ) {
+                            item {
+                                GridCategoryCard(
+                                    category = sampleLearnCategory,
+                                    onCategorySelected = { currentFolder = "Sample Learn" }
+                                )
+                            }
+                        }
+                    } else {
+                        androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                            columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxWidth().weight(1f)
+                        ) {
+                            items(filteredCategories.size) { index ->
+                                val category = filteredCategories[index]
+                                GridCategoryCard(
+                                    category = category,
+                                    onCategorySelected = onCategorySelected
+                                )
+                            }
                         }
                     }
                 } else {
@@ -759,4 +792,61 @@ fun HomeScreenPreview() {
         userName = "Test User",
         userPhotoUrl = "https://via.placeholder.com/150"
     )
+}
+// Helper to abbreviate category names (e.g., "Basic Vocabulary" -> "B. V.")
+fun abbreviateCategoryTitle(title: String): String {
+    val words = title.split(" ")
+    if (words.size == 1) return title
+    return words.filter { it.isNotBlank() }
+                .joinToString(" ") { it.take(1).uppercase() + "." }
+}
+
+@Composable
+fun GridCategoryCard(
+    category: Category,
+    onCategorySelected: (Category) -> Unit
+) {
+    val shortTitle = abbreviateCategoryTitle(category.title)
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().clickable { onCategorySelected(category) }
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .shadow(4.dp, RoundedCornerShape(12.dp)),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = shortTitle,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = category.color,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = category.title,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+        )
+    }
 }
