@@ -402,14 +402,6 @@ fun HomeScreen(
                 val filteredCategories = categories.filter { it.title.contains(searchQuery, ignoreCase = true) }
                 if (filteredCategories.isNotEmpty()) {
                     if (currentFolder == null) {
-                        val sampleLearnCategory = Category(
-                            id = "sample_learn",
-                            title = "Sample Learn",
-                            description = "Sample learning modules",
-                            color = MaterialTheme.colorScheme.primary,
-                            icon = Icons.AutoMirrored.Filled.MenuBook,
-                            words = emptyList()
-                        )
                         androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
                             columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
                             contentPadding = PaddingValues(bottom = 16.dp),
@@ -417,9 +409,17 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         ) {
-                            item {
+                            items(6) { index ->
+                                val emptyBoxCategory = Category(
+                                    id = "empty_box_$index",
+                                    title = "Sample ${index + 1}",
+                                    description = "Empty box",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                                    words = emptyList()
+                                )
                                 GridCategoryCard(
-                                    category = sampleLearnCategory,
+                                    category = emptyBoxCategory,
                                     onCategorySelected = { currentFolder = "Sample Learn" }
                                 )
                             }
