@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -403,9 +404,6 @@ fun WordCard(
     useRandomDirections: Boolean,
     animationStyle: Int
 ) {
-    var directionIndex by remember { mutableIntStateOf(0) }
-    var chosenDirection by remember { mutableIntStateOf(0) } // 0: left, 1: right, 2: top, 3: bottom
-    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -417,17 +415,84 @@ fun WordCard(
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Word image (no animations)
+            // ── Row 1: Word + Meaning (left) | AI Voice + Favourite (right) ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                // Left: word name + meaning stacked
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = word.word,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (word.pronunciation.isNotBlank()) {
+                        Text(
+                            text = word.pronunciation,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = word.definition,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 20.sp
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                // Right: AI Voice button + Favourite
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // AI Voice button (circle)
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(VibrantGreen)
+                            .clickable { onSpeakWord(word.word) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = "AI Voice",
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    // Favourite
+                    IconButton(
+                        onClick = onFavoriteToggle,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = "Favourite",
+                            tint = if (isFavorite) VibrantPink else Color.Gray,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+            }
+
+            // ── Row 2: Picture ──
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(340.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .height(260.dp)
+                    .clip(RoundedCornerShape(14.dp))
             ) {
                 if (word.imageUrl.isBlank()) {
-                    // No image assigned yet — show a gray placeholder box
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -436,204 +501,63 @@ fun WordCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Image,
-                            contentDescription = "No image yet for ${word.word}",
+                            contentDescription = "No image",
                             tint = Color(0xFFBDBDBD),
                             modifier = Modifier.size(56.dp)
                         )
                     }
                 } else {
                     Image(
-                        painter = painterResource(
-                            id = getImageResId(word.imageUrl)
-                        ),
+                        painter = painterResource(id = getImageResId(word.imageUrl)),
                         contentDescription = "Image for ${word.word}",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Word details
-            Column {
-                    // Header with word and favorite button
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (animationStyle == 2) {
-                                TypewriterText(
-                                    text = word.word,
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    key = "word-${word.word}"
-                                )
-                            } else {
-                                Text(
-                                    text = word.word,
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            IconButton(
-                                onClick = { onSpeakWord(word.word) },
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                    contentDescription = "Pronounce",
-                                    tint = VibrantGreen,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
-                        IconButton(
-                            onClick = onFavoriteToggle,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                                contentDescription = "Favorite",
-                                tint = if (isFavorite) VibrantPink else Color.Gray,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                    // Pronunciation display
+
+            // ── Row 3: Sentence ──
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = word.pronunciation,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = word.example,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 22.sp,
                         fontStyle = FontStyle.Italic,
-                        modifier = Modifier
-                            .padding(start = 2.dp, top = 2.dp, bottom = 8.dp)
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Definition section
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                    IconButton(
+                        onClick = { onSpeakWord(word.example) },
+                        modifier = Modifier.size(32.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Definition",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                IconButton(
-                                    onClick = { onSpeakWord(word.definition) },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                        contentDescription = "Pronounce Definition",
-                                        tint = VibrantGreen,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            if (animationStyle == 2) {
-                                TypewriterText(
-                                    text = word.definition,
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    lineHeight = 24.sp,
-                                    key = "def-${word.word}"
-                                )
-                            } else {
-                                Text(
-                                    text = word.definition,
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    lineHeight = 24.sp,
-                                    modifier = Modifier
-                                )
-                            }
-                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = "Speak sentence",
+                            tint = VibrantGreen,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Example section
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Example",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                IconButton(
-                                    onClick = { onSpeakWord(word.example) },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                        contentDescription = "Pronounce Example",
-                                        tint = VibrantGreen,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            if (animationStyle == 2) {
-                                TypewriterText(
-                                    text = word.example,
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    lineHeight = 24.sp,
-                                    fontStyle = FontStyle.Italic,
-                                    key = "ex-${word.word}"
-                                )
-                            } else {
-                                Text(
-                                    text = word.example,
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    lineHeight = 24.sp,
-                                    fontStyle = FontStyle.Italic,
-                                    modifier = Modifier
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Difficulty rating
-                    DifficultyRating(
-                        rating = difficultyRating,
-                        onRatingChange = onDifficultyChange
-                    )
                 }
+            }
+
+            // ── Difficulty rating (kept from before) ──
+            DifficultyRating(
+                rating = difficultyRating,
+                onRatingChange = onDifficultyChange
+            )
         }
     }
 }
