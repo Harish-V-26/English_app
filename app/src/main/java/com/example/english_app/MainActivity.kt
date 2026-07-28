@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val webClientId = "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com"
+        val webClientId = "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com"
 
         // Google Sign-In setup — request idToken so we can sign into Firebase Auth
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
