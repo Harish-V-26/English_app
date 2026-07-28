@@ -10,7 +10,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "English.Learn.App"
+        applicationId = "com.example.english_app"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
