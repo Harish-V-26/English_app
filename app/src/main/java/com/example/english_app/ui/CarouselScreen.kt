@@ -241,13 +241,11 @@ fun CarouselScreen(
                 },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Scrollable content
+            // Fixed (non-scrollable) content
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .fillMaxWidth()
-                    .padding(bottom = 80.dp), // Add padding for FAB
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Progress indicator
@@ -260,7 +258,7 @@ fun CarouselScreen(
                     trackColor = VibrantGreen.copy(alpha = 0.3f)
                 )
                 
-                // Word card with enhanced features
+                // Word card
                 WordCard(
                     word = currentWord,
                     isFavorite = isFavorite,
@@ -268,68 +266,12 @@ fun CarouselScreen(
                         isFavorite = !isFavorite
                         UserProgressRepository.setFavorite(category.id, currentWord.word, isFavorite)
                     },
-                    difficultyRating = difficultyRating,
-                    onDifficultyChange = {
-                        difficultyRating = it
-                        UserProgressRepository.setDifficulty(category.id, currentWord.word, it)
-                    },
                     onSpeakWord = { text ->
                         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
                     },
                     categoryId = category.id,
                     useRandomDirections = animationSettings.useRandomDirections,
                     animationStyle = animationSettings.animationStyle
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Action buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ActionButton(
-                        icon = Icons.Default.PlayArrow,
-                        text = "Practice",
-                        onClick = { onStartQuiz(category.id) },
-                        color = VibrantBlue
-                    )
-                    ActionButton(
-                        icon = Icons.Default.Share,
-                        text = "Share",
-                        onClick = {
-                            val shareText = "${currentWord.word} (${currentWord.pronunciation})\n" +
-                                "${currentWord.definition}\n" +
-                                "Example: ${currentWord.example}\n\n" +
-                                "Learning English vocabulary with ENGLISH_APP!"
-                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, shareText)
-                            }
-                            context.startActivity(Intent.createChooser(sendIntent, "Share this word"))
-                        },
-                        color = VibrantOrange
-                    )
-                    ActionButton(
-                        icon = if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        text = if (isBookmarked) "Saved" else "Save",
-                        onClick = {
-                            isBookmarked = !isBookmarked
-                            UserProgressRepository.setBookmarked(category.id, currentWord.word, isBookmarked)
-                        },
-                        color = VibrantPink
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Additional navigation info
-                Text(
-                    text = "💡 Swipe left/right or use buttons to navigate",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
             
@@ -397,8 +339,6 @@ fun WordCard(
     word: Word,
     isFavorite: Boolean,
     onFavoriteToggle: () -> Unit,
-    difficultyRating: Int,
-    onDifficultyChange: (Int) -> Unit,
     onSpeakWord: (String) -> Unit,
     categoryId: String,
     useRandomDirections: Boolean,
@@ -553,11 +493,7 @@ fun WordCard(
                 }
             }
 
-            // ── Difficulty rating (kept from before) ──
-            DifficultyRating(
-                rating = difficultyRating,
-                onRatingChange = onDifficultyChange
-            )
+
         }
     }
 }
