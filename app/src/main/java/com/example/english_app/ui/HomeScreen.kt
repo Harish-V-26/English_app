@@ -848,7 +848,11 @@ fun GridCategoryCard(
     category: Category,
     onCategorySelected: (Category) -> Unit
 ) {
-    val shortTitle = abbreviateCategoryTitle(category.title)
+    val boxText = if (category.words.isNotEmpty()) {
+        category.words.take(2).joinToString("\n") { it.word }
+    } else {
+        abbreviateCategoryTitle(category.title)
+    }
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -869,8 +873,8 @@ fun GridCategoryCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = shortTitle,
-                    fontSize = 22.sp,
+                    text = boxText,
+                    fontSize = if (category.words.isNotEmpty()) 16.sp else 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = category.color,
                     textAlign = TextAlign.Center,
