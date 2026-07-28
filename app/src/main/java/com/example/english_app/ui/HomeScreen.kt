@@ -402,7 +402,10 @@ fun HomeScreen(
                 val filteredCategories = categories.filter { it.title.contains(searchQuery, ignoreCase = true) }
                 if (filteredCategories.isNotEmpty()) {
                     if (currentFolder == null) {
-                        androidx.compose.foundation.lazy.LazyColumn(
+                        androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                            columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         ) {
@@ -415,54 +418,55 @@ fun HomeScreen(
                                     icon = Icons.AutoMirrored.Filled.MenuBook,
                                     words = emptyList()
                                 )
-                                EnhancedCategoryCard(
+                                GridCategoryCard(
                                     category = sampleLearnCategory,
-                                    onCategorySelected = { currentFolder = "Sample Learn" },
-                                    onSpeakCategory = {}
+                                    onCategorySelected = { currentFolder = "Sample Learn" }
                                 )
+                            }
+                            items(2) {
+                                Spacer(modifier = Modifier.fillMaxSize())
                             }
                             items(6) { index ->
                                 val actualCategory = docCategories.getOrNull(index)
                                 if (actualCategory != null) {
-                                    val wordNames = actualCategory.words.take(2).joinToString(", ") { it.word }
+                                    val firstTwoWords = actualCategory.words.take(2).joinToString(", ") { it.word }
                                     val boxCategory = actualCategory.copy(
                                         id = "box_${actualCategory.id}",
-                                        title = wordNames, // Displaying word names as the title in the card
-                                        description = actualCategory.title // And the category title as the description
+                                        description = "$firstTwoWords and others"
                                     )
-                                    EnhancedCategoryCard(
+                                    GridCategoryCard(
                                         category = boxCategory,
-                                        onCategorySelected = { onCategorySelected(actualCategory) },
-                                        onSpeakCategory = {}
+                                        onCategorySelected = { onCategorySelected(actualCategory) }
                                     )
                                 } else {
                                     val emptyBoxCategory = Category(
                                         id = "empty_box_$index",
-                                        title = "Empty Box",
+                                        title = "",
                                         description = "",
                                         color = Color.LightGray,
                                         icon = Icons.AutoMirrored.Filled.MenuBook,
                                         words = emptyList()
                                     )
-                                    EnhancedCategoryCard(
+                                    GridCategoryCard(
                                         category = emptyBoxCategory,
-                                        onCategorySelected = { },
-                                        onSpeakCategory = {}
+                                        onCategorySelected = { }
                                     )
                                 }
                             }
                         }
                     } else if (currentFolder == "Sample Learn") {
-                        androidx.compose.foundation.lazy.LazyColumn(
+                        androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                            columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         ) {
                             items(filteredCategories.size) { index ->
                                 val category = filteredCategories[index]
-                                EnhancedCategoryCard(
+                                GridCategoryCard(
                                     category = category,
-                                    onCategorySelected = onCategorySelected,
-                                    onSpeakCategory = {}
+                                    onCategorySelected = onCategorySelected
                                 )
                             }
                         }
@@ -844,12 +848,6 @@ fun GridCategoryCard(
     category: Category,
     onCategorySelected: (Category) -> Unit
 ) {
-    val boxText = if (category.words.isNotEmpty()) {
-        category.words.take(2).joinToString("\n") { it.word }
-    } else {
-        abbreviateCategoryTitle(category.title)
-    }
-    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth().clickable { onCategorySelected(category) }
@@ -869,26 +867,15 @@ fun GridCategoryCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = boxText,
-                    fontSize = if (category.words.isNotEmpty()) 16.sp else 22.sp,
+                    text = category.title,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = category.color,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(8.dp)
+                    lineHeight = 17.sp,
+                    modifier = Modifier.padding(6.dp)
                 )
             }
         }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = category.title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            lineHeight = 18.sp,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
-        )
     }
 }
