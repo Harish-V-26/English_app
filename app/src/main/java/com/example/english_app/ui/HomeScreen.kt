@@ -441,7 +441,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                    } else {
+                    } else if (currentFolder == "Sample Learn") {
                         androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
                             columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
                             contentPadding = PaddingValues(bottom = 16.dp),
@@ -456,6 +456,18 @@ fun HomeScreen(
                                     onCategorySelected = onCategorySelected
                                 )
                             }
+                        }
+                    } else {
+                        // Navigated to a blank separate page for the 6 boxes
+                        Box(
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Blank Page",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 18.sp
+                            )
                         }
                     }
                 } else {
