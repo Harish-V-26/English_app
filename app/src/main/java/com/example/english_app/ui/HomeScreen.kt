@@ -437,7 +437,7 @@ fun HomeScreen(
                                 )
                                 GridCategoryCard(
                                     category = emptyBoxCategory,
-                                    onCategorySelected = { }
+                                    onCategorySelected = { currentFolder = "Box ${index + 1}" }
                                 )
                             }
                         }
