@@ -427,18 +427,31 @@ fun HomeScreen(
                                 Spacer(modifier = Modifier.fillMaxSize())
                             }
                             items(6) { index ->
-                                val emptyBoxCategory = Category(
-                                    id = "empty_box_$index",
-                                    title = "",
-                                    description = "",
-                                    color = Color.LightGray,
-                                    icon = Icons.AutoMirrored.Filled.MenuBook,
-                                    words = emptyList()
-                                )
-                                GridCategoryCard(
-                                    category = emptyBoxCategory,
-                                    onCategorySelected = { currentFolder = "Box ${index + 1}" }
-                                )
+                                val actualCategory = docCategories.getOrNull(index)
+                                if (actualCategory != null) {
+                                    val firstTwoWords = actualCategory.words.take(2).joinToString(", ") { it.word }
+                                    val boxCategory = actualCategory.copy(
+                                        id = "box_${actualCategory.id}",
+                                        description = "$firstTwoWords and others"
+                                    )
+                                    GridCategoryCard(
+                                        category = boxCategory,
+                                        onCategorySelected = { onCategorySelected(actualCategory) }
+                                    )
+                                } else {
+                                    val emptyBoxCategory = Category(
+                                        id = "empty_box_$index",
+                                        title = "",
+                                        description = "",
+                                        color = Color.LightGray,
+                                        icon = Icons.AutoMirrored.Filled.MenuBook,
+                                        words = emptyList()
+                                    )
+                                    GridCategoryCard(
+                                        category = emptyBoxCategory,
+                                        onCategorySelected = { }
+                                    )
+                                }
                             }
                         }
                     } else if (currentFolder == "Sample Learn") {
