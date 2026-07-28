@@ -453,6 +453,20 @@ fun HomeScreen(
                                     )
                                 }
                             }
+                            items(7) { index ->
+                                val emptyBoxCategory = Category(
+                                    id = "extra_empty_box_$index",
+                                    title = "",
+                                    description = "",
+                                    color = Color.LightGray,
+                                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                                    words = emptyList()
+                                )
+                                GridCategoryCard(
+                                    category = emptyBoxCategory,
+                                    onCategorySelected = { }
+                                )
+                            }
                         }
                     } else if (currentFolder == "Sample Learn") {
                         androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
