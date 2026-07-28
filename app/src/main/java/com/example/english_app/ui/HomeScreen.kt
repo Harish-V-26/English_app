@@ -409,18 +409,35 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.fillMaxWidth().weight(1f)
                         ) {
-                            items(6) { index ->
-                                val emptyBoxCategory = Category(
-                                    id = "empty_box_$index",
-                                    title = "Sample ${index + 1}",
-                                    description = "Empty box",
+                            item {
+                                val sampleLearnCategory = Category(
+                                    id = "sample_learn",
+                                    title = "Sample Learn",
+                                    description = "Sample learning modules",
                                     color = MaterialTheme.colorScheme.primary,
                                     icon = Icons.AutoMirrored.Filled.MenuBook,
                                     words = emptyList()
                                 )
                                 GridCategoryCard(
-                                    category = emptyBoxCategory,
+                                    category = sampleLearnCategory,
                                     onCategorySelected = { currentFolder = "Sample Learn" }
+                                )
+                            }
+                            items(2) {
+                                Spacer(modifier = Modifier.fillMaxSize())
+                            }
+                            items(6) { index ->
+                                val emptyBoxCategory = Category(
+                                    id = "empty_box_$index",
+                                    title = "",
+                                    description = "",
+                                    color = Color.LightGray,
+                                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                                    words = emptyList()
+                                )
+                                GridCategoryCard(
+                                    category = emptyBoxCategory,
+                                    onCategorySelected = { }
                                 )
                             }
                         }
