@@ -108,6 +108,24 @@ val docWords11 = listOf(
     Word("Stormy", "", "with strong winds, rain, thunder", "Fishermen never go for fishing on stormy days", "stormy")
 )
 
+// ---------- Document 12: Ted Talks ----------
+val docWords12 = listOf(
+    Word("Ted Talks", "", "Links 1-5", "https://youtu.be/xEGTC5jGI94?si=8NiperTW7QRamQoy\nhttps://youtu.be/sB34sRehUvU?si=FV2tY33A51Mhuzi9\nhttps://youtu.be/6LZ7QqoY_1w?si=edlnGRTvrA0VlDV-\nhttps://youtu.be/TIwBwyMgS50?si=OTv0_iwVKvGMtIE8\nhttps://youtu.be/bC0hlK7WGcM?si=63z0xt-wfLaQyvI1", ""),
+    Word("Ted Talks", "", "Links 6-10", "https://youtu.be/8ZhWojQnHls?si=mfVTj_xx8sfEASAH\nhttps://youtu.be/0NV1KdWRHck?si=ro4b5JvIwVDYp1Hp\nhttps://youtu.be/lhv72TsRvHU?si=9S4_Mo8ClD_dF1A5\nhttps://youtu.be/TFbv757kup4?si=47JfXz3ns_PcoxYd\nhttps://youtu.be/o_XVt5rdpFY?si=gpR0T30IPjKYOOMP", "")
+)
+
+// ---------- Document 13: Stories ----------
+val docWords13 = listOf(
+    Word("Stories", "", "Links 1-5", "https://youtu.be/IvxUmOQsEOA?si=ufwWMGtV-_oIb-IW\nhttps://youtu.be/oTimWHAoawU?si=VqvchBDW3gd5aA8Y\nhttps://youtu.be/1VHTnrutwAo?si=Y92JjOBscDpVIfUC\nhttps://youtu.be/VkJ0IcJ3EpA?si=mOG1eDn2goa8t2_G\nhttps://youtu.be/Wygb93WOHAo?si=hnb5wXVM6x1GE_4r", ""),
+    Word("Stories", "", "Links 6-10", "https://youtu.be/ieFWfWtKmTc?si=eUFdk_gC2n4kBi1K\nhttps://youtu.be/F0lKZqHwNXE?si=nANcP_NHZsnGr1ww\nhttps://youtu.be/TbmSCdn_iUo?si=CaTIpweWQ5Bwi5_G\nhttps://youtu.be/_hheZx7hxGQ?si=P2vXXKjXbdvpjZ1l\nhttps://youtu.be/ESxN1eoCWTc?si=MLjt2YDajIvxiyMp", "")
+)
+
+// ---------- Document 14: Podcast Videos ----------
+val docWords14 = listOf(
+    Word("Podcast Videos", "", "Links 1-5", "https://youtu.be/ZDAoStA38r8?si=MLNanDb7tj9s9CpR\nhttps://youtu.be/aiUGN3TDvw4?si=3Mg_8d0d9wiem7AM\nhttps://youtu.be/31y2Bq1RYQA?si=RatuwQdTUc44BIJW\nhttps://youtu.be/I_tRSrPru94?si=4R-gInm6WCQ6oOU4\nhttps://youtu.be/bq6GBbh3uhU?si=zIOAm1kXGU0_FAKI", ""),
+    Word("Podcast Videos", "", "Links 6-10", "https://youtu.be/-SHjj68WaLs?si=HAcCGC2CQE4rjdF1\nhttps://youtu.be/0y185Tz39lk?si=CSSvbbR42WHkOwyS\nhttps://youtu.be/Y__k1dLo-eo?si=Iba2lEOPcaGANSIL\nhttps://youtu.be/eabT4z25qxE?si=6bvgEAEYbKidGipj\nhttps://youtu.be/3Mr4mGMALwI?si=FcZn5gCg1S-QoJub", "")
+)
+
 val docCategories = listOf(
     Category("doc1", "Advanced Vocabulary", "Rich, expressive words for advanced learners", VibrantPurple, Icons.Default.AutoStories, docWords1),
     Category("doc2", "Basic Vocabulary", "Everyday words to build a strong foundation", VibrantTeal, Icons.Default.MenuBook, docWords2),
@@ -120,7 +138,7 @@ val docCategories = listOf(
     Category("doc9", "Types of LSRW and Looking", "Listening, Speaking, Reading, Writing, Looking", VibrantBlue, Icons.Default.Visibility, docWords9),
     Category("doc10", "Types of Walking", "Different ways of walking", VibrantPurple, Icons.Default.DirectionsWalk, docWords10),
     Category("doc11", "Types of Weather", "Various weather conditions", VibrantOrange, Icons.Default.WbSunny, docWords11),
-    Category("doc12", "Coming Soon", "More words to be added", Color.LightGray, Icons.Default.MenuBook, emptyList()),
-    Category("doc13", "Coming Soon", "More words to be added", Color.LightGray, Icons.Default.MenuBook, emptyList()),
-    Category("doc14", "Coming Soon", "More words to be added", Color.LightGray, Icons.Default.MenuBook, emptyList())
+    Category("doc12", "Ted Talks", "Inspiring Ted Talk videos", VibrantGreen, Icons.Default.VideoLibrary, docWords12),
+    Category("doc13", "Stories", "Engaging story videos", VibrantOrange, Icons.Default.MenuBook, docWords13),
+    Category("doc14", "Podcast Videos", "Interesting podcast videos", VibrantBlue, Icons.Default.Headphones, docWords14)
 )

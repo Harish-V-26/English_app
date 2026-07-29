@@ -27,10 +27,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.english_app.ui.theme.*
@@ -354,12 +356,46 @@ fun WordCard(
         ),
         shape = RoundedCornerShape(20.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        if (categoryId in listOf("doc12", "doc13", "doc14")) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .background(Color(0xFFF8F8FF), RoundedCornerShape(12.dp))
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    val lines = word.example.split("\n")
+                    val uriHandler = LocalUriHandler.current
+                    lines.forEach { line ->
+                        if (line.startsWith("http")) {
+                            Text(
+                                text = line,
+                                fontSize = 16.sp,
+                                color = Color(0xFF1D1BCC),
+                                textDecoration = TextDecoration.Underline,
+                                lineHeight = 28.sp,
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp)
+                                    .clickable {
+                                        uriHandler.openUri(line)
+                                    }
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
             // ── Row 1: Word + Meaning (left) | AI Voice + Favourite (right) ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -429,7 +465,7 @@ fun WordCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(340.dp)
                     .clip(RoundedCornerShape(14.dp))
             ) {
                 if (word.imageUrl.isBlank()) {
@@ -447,20 +483,23 @@ fun WordCard(
                         )
                     }
                 } else if (word.imageUrl in listOf("gobble", "limp", "listen", "nibble", "overhear", "stormy", "stride", "sunny")) {
-                    androidx.compose.ui.viewinterop.AndroidView(
-                        factory = { context ->
-                            android.widget.VideoView(context).apply {
-                                val resId = context.resources.getIdentifier(word.imageUrl, "raw", context.packageName)
-                                val uri = android.net.Uri.parse("android.resource://${context.packageName}/$resId")
-                                setVideoURI(uri)
-                                setOnPreparedListener { mp ->
-                                    mp.isLooping = true
+                    key(word.imageUrl) {
+                        androidx.compose.ui.viewinterop.AndroidView(
+                            factory = { context ->
+                                android.widget.VideoView(context).apply {
+                                    val resId = context.resources.getIdentifier(word.imageUrl, "raw", context.packageName)
+                                    val uri = android.net.Uri.parse("android.resource://${context.packageName}/$resId")
+                                    setVideoURI(uri)
+                                    setOnPreparedListener { mp ->
+                                        mp.isLooping = true
+                                        mp.setVideoScalingMode(android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
+                                    }
+                                    start()
                                 }
-                                start()
-                            }
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 } else {
                     Image(
                         painter = painterResource(id = getImageResId(word.imageUrl)),
@@ -486,14 +525,39 @@ fun WordCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = word.example,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 22.sp,
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        val lines = word.example.split("\n")
+                        val uriHandler = LocalUriHandler.current
+                        lines.forEach { line ->
+                            if (line.startsWith("http")) {
+                                Text(
+                                    text = line,
+                                    fontSize = 14.sp,
+                                    color = Color.Blue,
+                                    textDecoration = TextDecoration.Underline,
+                                    lineHeight = 24.sp,
+                                    modifier = Modifier
+                                        .padding(vertical = 4.dp)
+                                        .clickable {
+                                            uriHandler.openUri(line)
+                                        }
+                                )
+                            } else {
+                                Text(
+                                    text = line,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 22.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier.padding(vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
                     IconButton(
                         onClick = { onSpeakWord(word.example) },
                         modifier = Modifier.size(32.dp)
@@ -510,6 +574,7 @@ fun WordCard(
 
 
         }
+        } // close else block
     }
 }
 
