@@ -3,6 +3,7 @@ package com.example.english_app.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import com.example.english_app.ui.theme.*
+import androidx.compose.ui.graphics.Color
 
 // All words below use imageUrl = "" on purpose. CarouselScreen shows a gray
 // placeholder box for any word with a blank imageUrl. Once real images are
@@ -83,6 +84,30 @@ val docWords7 = listOf(
     Word("Connive", "", "1) To secretly cooperate in a wrongdoing. 2) To ignore a wrongdoing on purpose.", "The two officials connived to hide the fraud. / The guard connived at the theft.")
 )
 
+// ---------- Document 8: Types of Eating ----------
+val docWords8 = listOf(
+    Word("Nibble", "", "eat small bites", "The child nibbles the biscuit.", "nibble"),
+    Word("Gobble", "", "eat quickly and greedily", "She gobbled her food after a day of fasting.", "gobble")
+)
+
+// ---------- Document 9: Types of LSRW and Looking ----------
+val docWords9 = listOf(
+    Word("Listen", "", "listening attentively", "She listens to the music", "listen"),
+    Word("Overhear", "", "hear something accidentally", "He overhears their conversation", "overhear")
+)
+
+// ---------- Document 10: Types of Walking ----------
+val docWords10 = listOf(
+    Word("Limp", "", "walk with difficulty due to injury", "The sportsman limped after hurting his leg.", "limp"),
+    Word("Stride", "", "walk with long, confident steps", "She strides into the auditorium with confident.", "stride")
+)
+
+// ---------- Document 11: Types of Weather ----------
+val docWords11 = listOf(
+    Word("Sunny", "", "bright with sunlight", "He played outside on sunny day.", "sunny"),
+    Word("Stormy", "", "with strong winds, rain, thunder", "Fishermen never go for fishing on stormy days", "stormy")
+)
+
 val docCategories = listOf(
     Category("doc1", "Advanced Vocabulary", "Rich, expressive words for advanced learners", VibrantPurple, Icons.Default.AutoStories, docWords1),
     Category("doc2", "Basic Vocabulary", "Everyday words to build a strong foundation", VibrantTeal, Icons.Default.MenuBook, docWords2),
@@ -90,5 +115,12 @@ val docCategories = listOf(
     Category("doc4", "Blended Words", "Portmanteau words formed by blending two words", VibrantPink, Icons.Default.Shuffle, docWords4),
     Category("doc5", "Kitchen Vocabulary", "Cooking tools, spices, and kitchen terms", VibrantGreen, Icons.Default.Kitchen, docWords5),
     Category("doc6", "Movement Vocabulary", "Words describing small actions and gestures", VibrantBlue, Icons.Default.DirectionsRun, docWords6),
-    Category("doc7", "Vocab Twist", "Homographs ΓÇö one word, multiple meanings", VibrantYellow, Icons.Default.SwapHoriz, docWords7)
+    Category("doc7", "Vocab Twist", "Homographs — one word, multiple meanings", VibrantYellow, Icons.Default.SwapHoriz, docWords7),
+    Category("doc8", "Types of Eating", "Different ways to eat", VibrantPink, Icons.Default.Restaurant, docWords8),
+    Category("doc9", "Types of LSRW and Looking", "Listening, Speaking, Reading, Writing, Looking", VibrantBlue, Icons.Default.Visibility, docWords9),
+    Category("doc10", "Types of Walking", "Different ways of walking", VibrantPurple, Icons.Default.DirectionsWalk, docWords10),
+    Category("doc11", "Types of Weather", "Various weather conditions", VibrantOrange, Icons.Default.WbSunny, docWords11),
+    Category("doc12", "Coming Soon", "More words to be added", Color.LightGray, Icons.Default.MenuBook, emptyList()),
+    Category("doc13", "Coming Soon", "More words to be added", Color.LightGray, Icons.Default.MenuBook, emptyList()),
+    Category("doc14", "Coming Soon", "More words to be added", Color.LightGray, Icons.Default.MenuBook, emptyList())
 )

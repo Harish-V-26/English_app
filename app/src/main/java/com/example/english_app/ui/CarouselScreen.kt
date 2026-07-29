@@ -446,6 +446,21 @@ fun WordCard(
                             modifier = Modifier.size(56.dp)
                         )
                     }
+                } else if (word.imageUrl in listOf("gobble", "limp", "listen", "nibble", "overhear", "stormy", "stride", "sunny")) {
+                    androidx.compose.ui.viewinterop.AndroidView(
+                        factory = { context ->
+                            android.widget.VideoView(context).apply {
+                                val resId = context.resources.getIdentifier(word.imageUrl, "raw", context.packageName)
+                                val uri = android.net.Uri.parse("android.resource://${context.packageName}/$resId")
+                                setVideoURI(uri)
+                                setOnPreparedListener { mp ->
+                                    mp.isLooping = true
+                                }
+                                start()
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
                 } else {
                     Image(
                         painter = painterResource(id = getImageResId(word.imageUrl)),
