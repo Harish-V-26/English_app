@@ -93,64 +93,7 @@ fun QuizHubScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = "Or choose a category to test what you've learned",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(categories) { category ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onCategorySelected(category) },
-                        colors = CardDefaults.cardColors(containerColor = category.color.copy(alpha = 0.12f)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = category.icon,
-                                contentDescription = category.title,
-                                tint = category.color,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = category.title,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "${category.words.size} words",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Icon(
-                                imageVector = Icons.Default.Quiz,
-                                contentDescription = "Start quiz",
-                                tint = category.color,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = category.color
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }
