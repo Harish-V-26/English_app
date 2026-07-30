@@ -465,7 +465,7 @@ fun WordCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(340.dp)
+                    .height(220.dp)
                     .clip(RoundedCornerShape(14.dp))
             ) {
                 if (word.imageUrl.isBlank()) {
