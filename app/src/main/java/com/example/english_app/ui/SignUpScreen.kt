@@ -26,6 +26,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Email
@@ -53,6 +55,7 @@ import com.example.english_app.data.UserProgressRepository
 
 private const val ALLOWED_DOMAIN = "@srcas.ac.in"
 
+@androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
 fun SignUpScreen(
     onSignUpClick: (String, String, String, Boolean) -> Unit = { _, _, _, _ -> },
@@ -66,6 +69,23 @@ fun SignUpScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var rollNo by remember { mutableStateOf("") }
     var department by remember { mutableStateOf("") }
+    var departmentDropdownExpanded by remember { mutableStateOf(false) }
+    val departmentOptions = listOf(
+        "Computer Science",
+        "Computer Applications",
+        "English",
+        "Commerce",
+        "Business Administration",
+        "Mathematics",
+        "Physics",
+        "Chemistry",
+        "Botany",
+        "Zoology",
+        "Visual Communication",
+        "Tamil",
+        "Economics",
+        "History"
+    )
     var secretKey by remember { mutableStateOf("") }
     var isTeacher by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
@@ -181,83 +201,48 @@ fun SignUpScreen(
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            // College logo and name at the top
-            Row(
+            // College name at the top — matching Login screen
+            Text(
+                text = "Sri Ramakrishna College of Arts & Science",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                    .padding(bottom = 16.dp)
+            )
+            
+            // College logo
+            Card(
+                modifier = Modifier
+                    .size(150.dp)
+                    .shadow(6.dp, RoundedCornerShape(24.dp)),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Card(
+                Image(
+                    painter = painterResource(id = R.drawable.clg),
+                    contentDescription = "SRCAS Shield Logo",
                     modifier = Modifier
-                        .size(56.dp)
-                        .shadow(8.dp, RoundedCornerShape(12.dp)),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.clg),
-                        contentDescription = "SRCAS Shield Logo",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(4.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                Text(
-                    text = "Sri Ramakrishna College\nof Arts & Science",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
             
-            // App Logo
-            Image(
-                painter = painterResource(id = R.drawable.wordwhiz_logo),
-                contentDescription = "App Logo",
-                modifier = Modifier
-                    .size(90.dp)
-                    .clip(RoundedCornerShape(16.dp))
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            Text(
-                text = "WORDWhiz",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
-                textAlign = TextAlign.Center
-            )
-            
-            Text(
-                text = "VOCABULARY LEARNING APP",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White.copy(alpha = 0.9f),
-                textAlign = TextAlign.Center
-            )
-        
-            Spacer(modifier = Modifier.height(16.dp))
-        
             Text(
                 text = "Join Our Community!",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
-        
+            
             Text(
                 text = "Create your account to start learning English",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center
             )
@@ -268,7 +253,7 @@ fun SignUpScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(20.dp, RoundedCornerShape(20)),
+                    .shadow(6.dp, RoundedCornerShape(20)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(20)
             ) {
@@ -450,37 +435,67 @@ fun SignUpScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
-                    // Department field
-                    OutlinedTextField(
-                        value = department,
-                        onValueChange = {
-                            department = it
-                            if (error.isNotEmpty()) error = ""
-                        },
-                        label = { Text("Department") },
-                        placeholder = { Text("e.g. Computer Science") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = "Department",
-                                tint = VibrantBlue
+                    // Department field — fixed dropdown so every student's department
+                    // is stored with the exact same spelling/casing (e.g. always
+                    // "Computer Science"), which is required for the Admin Panel's
+                    // department filter to group students correctly.
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = department,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Department") },
+                            placeholder = { Text("Select your department") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.School,
+                                    contentDescription = "Department",
+                                    tint = VibrantBlue
+                                )
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = if (departmentDropdownExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                    contentDescription = "Dropdown",
+                                    tint = VibrantBlue
+                                )
+                            },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = "departmentField" },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = VibrantBlue,
+                                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                                focusedLabelColor = VibrantBlue,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                             )
-                        },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { contentDescription = "departmentField" },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = VibrantBlue,
-                            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                            focusedLabelColor = VibrantBlue,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         )
-                    )
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { departmentDropdownExpanded = !departmentDropdownExpanded }
+                        )
+                        DropdownMenu(
+                            expanded = departmentDropdownExpanded,
+                            onDismissRequest = { departmentDropdownExpanded = false },
+                            modifier = Modifier.fillMaxWidth(0.85f)
+                        ) {
+                            departmentOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option, fontSize = 15.sp) },
+                                    onClick = {
+                                        department = option
+                                        departmentDropdownExpanded = false
+                                        if (error.isNotEmpty()) error = ""
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     // Space between Department and Email fields
                     Spacer(modifier = Modifier.height(16.dp))
@@ -681,7 +696,7 @@ fun SignUpScreen(
                                                 name = name,
                                                 rollNo = rollNo,
                                                 department = department,
-                                                role = if (isTeacher) "admin" else "student",
+                                                role = if (isTeacher) "teacher" else "student",
                                                 email = email
                                             )
                                             onSignUpClick(name, email, password, agreeToTerms)
@@ -831,6 +846,7 @@ fun SignUpScreen(
 }
 
 @Preview(showBackground = true)
+@androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
 fun SignUpScreenPreview() {
     SignUpScreen()
