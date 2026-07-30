@@ -70,6 +70,7 @@ import androidx.compose.runtime.DisposableEffect
 import java.util.Locale
 import androidx.compose.material.icons.filled.CompareArrows
 
+
 // --- Vocabulary Data Models and Sets ---
 data class Category(
     val id: String,
@@ -353,140 +354,192 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Practice / Quiz shortcut
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onQuiz() }
-                        .shadow(8.dp, RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = VibrantOrange),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                if (currentFolder == null) {
+                    // ── Main home: four sections in a scrollable column ──
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Quiz,
-                            contentDescription = "Practice and Quiz",
-                            tint = Color.White,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Practice & Take a Quiz",
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "Test what you've learned from any category",
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.9f)
-                            )
+
+                        // ══════════════════════════════════════════
+                        // Section 1 · PRACTICE
+                        // ══════════════════════════════════════════
+                        item {
+                            SectionHeading(title = "Practice")
                         }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Go to quiz",
-                            tint = Color.White
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Categories with navigation
-                val filteredCategories = categories.filter { it.title.contains(searchQuery, ignoreCase = true) }
-                if (filteredCategories.isNotEmpty()) {
-                    if (currentFolder == null) {
-                        androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                            columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-                            contentPadding = PaddingValues(bottom = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxWidth().weight(1f)
-                        ) {
-                            item {
-                                val sampleLearnCategory = Category(
-                                    id = "sample_learn",
-                                    title = "Sample Learn",
-                                    description = "Sample learning modules",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    icon = Icons.AutoMirrored.Filled.MenuBook,
-                                    words = emptyList()
-                                )
-                                GridCategoryCard(
-                                    category = sampleLearnCategory,
-                                    onCategorySelected = { currentFolder = "Sample Learn" }
-                                )
-                            }
-                            items(2) {
-                                Spacer(modifier = Modifier.fillMaxSize())
-                            }
-                            items(docCategories.size) { index ->
-                                val actualCategory = docCategories[index]
-                                val descriptionText = if (actualCategory.words.isNotEmpty()) {
-                                    val firstTwoWords = actualCategory.words.take(2).joinToString(", ") { it.word }
-                                    "$firstTwoWords and others"
-                                } else {
-                                    actualCategory.description
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 0.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Sample Learn — 1/3 width
+                                Box(modifier = Modifier.weight(1f)) {
+                                    SectionCard(
+                                        title = "Sample Learn",
+                                        icon = Icons.AutoMirrored.Filled.MenuBook,
+                                        iconTint = VibrantBlue,
+                                        onClick = { currentFolder = "Sample Learn" }
+                                    )
                                 }
-                                val boxCategory = actualCategory.copy(
-                                    id = "box_${actualCategory.id}",
-                                    description = descriptionText
-                                )
-                                GridCategoryCard(
-                                    category = boxCategory,
-                                    onCategorySelected = {
-                                        if (actualCategory.words.isNotEmpty()) {
-                                            onCategorySelected(actualCategory)
-                                        }
+                                // Practice & Take a Quiz — 1/3 width
+                                Box(modifier = Modifier.weight(1f)) {
+                                    SectionCard(
+                                        title = "Practice & Take a Quiz",
+                                        icon = Icons.Default.Quiz,
+                                        iconTint = VibrantPurple,
+                                        onClick = onQuiz
+                                    )
+                                }
+                                // Empty spacer so cards don't stretch full width
+                                Box(modifier = Modifier.weight(1f))
+                            }
+                        }
+
+                        // ══════════════════════════════════════════
+                        // Section 2 · LEARNING WITH PHOTOS
+                        // ══════════════════════════════════════════
+                        item {
+                            SectionHeading(title = "Learning with Photos")
+                        }
+                        item {
+                            // Photos categories: doc1..doc7
+                            val photosCategories = listOf(
+                                Triple("Advanced Vocabulary", Icons.Default.AutoStories, VibrantPurple),
+                                Triple("Basic Vocabulary",    Icons.Default.MenuBook,    VibrantTeal),
+                                Triple("Basic vs Advanced",   Icons.Default.CompareArrows, VibrantOrange),
+                                Triple("Blended Words",       Icons.Default.Shuffle,     VibrantPink),
+                                Triple("Kitchen Vocabulary",  Icons.Default.Kitchen,     VibrantGreen),
+                                Triple("Movement Vocabulary", Icons.Default.DirectionsRun, VibrantBlue),
+                                Triple("Vocab Twist",         Icons.Default.SwapHoriz,   Color(0xFF795548)) // dark brown
+                            )
+                            val docPhotosCats = listOf(
+                                docCategories.find { it.id == "doc1" },
+                                docCategories.find { it.id == "doc2" },
+                                docCategories.find { it.id == "doc3" },
+                                docCategories.find { it.id == "doc4" },
+                                docCategories.find { it.id == "doc5" },
+                                docCategories.find { it.id == "doc6" },
+                                docCategories.find { it.id == "doc7" }
+                            )
+                            ThreeColumnGrid(
+                                items = photosCategories.indices.toList(),
+                                spacing = 12.dp
+                            ) { idx ->
+                                val (title, icon, tint) = photosCategories[idx]
+                                val actualCat = docPhotosCats[idx]
+                                SectionCard(
+                                    title = title,
+                                    icon = icon,
+                                    iconTint = tint,
+                                    onClick = {
+                                        if (actualCat != null) onCategorySelected(actualCat)
                                     }
                                 )
                             }
                         }
-                    } else if (currentFolder == "Sample Learn") {
-                        androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                            columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-                            contentPadding = PaddingValues(bottom = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxWidth().weight(1f)
-                        ) {
-                            items(filteredCategories.size) { index ->
-                                val category = filteredCategories[index]
-                                GridCategoryCard(
-                                    category = category,
-                                    onCategorySelected = onCategorySelected
+
+                        // ══════════════════════════════════════════
+                        // Section 3 · LEARNING WITH VIDEOS
+                        // ══════════════════════════════════════════
+                        item {
+                            SectionHeading(title = "Learning with Videos")
+                        }
+                        item {
+                            val videosCategories = listOf(
+                                Triple("Types of Eating",            Icons.Default.Restaurant,     VibrantPink),
+                                Triple("Types of LSRW and Looking",  Icons.Default.Visibility,     VibrantBlue),
+                                Triple("Types of Walking",           Icons.Default.DirectionsWalk, VibrantGreen),
+                                Triple("Types of Weather",           Icons.Default.WbSunny,        VibrantOrange)
+                            )
+                            val docVideoCats = listOf(
+                                docCategories.find { it.id == "doc8" },
+                                docCategories.find { it.id == "doc9" },
+                                docCategories.find { it.id == "doc10" },
+                                docCategories.find { it.id == "doc11" }
+                            )
+                            ThreeColumnGrid(
+                                items = videosCategories.indices.toList(),
+                                spacing = 12.dp
+                            ) { idx ->
+                                val (title, icon, tint) = videosCategories[idx]
+                                val actualCat = docVideoCats[idx]
+                                SectionCard(
+                                    title = title,
+                                    icon = icon,
+                                    iconTint = tint,
+                                    onClick = {
+                                        if (actualCat != null) onCategorySelected(actualCat)
+                                    }
                                 )
                             }
                         }
-                    } else {
-                        // Navigated to a blank separate page for the 6 boxes
-                        Box(
-                            modifier = Modifier.fillMaxWidth().weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Blank Page",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 18.sp
+
+                        // ══════════════════════════════════════════
+                        // Section 4 · PODCAST
+                        // ══════════════════════════════════════════
+                        item {
+                            SectionHeading(title = "Podcast")
+                        }
+                        item {
+                            val podcastCategories = listOf(
+                                Triple("Ted Talks",      Icons.Default.Mic,        VibrantPink),
+                                Triple("Stories",        Icons.Default.MenuBook,   VibrantGreen),
+                                Triple("Podcast Videos", Icons.Default.Headphones, VibrantPurple)
+                            )
+                            val docPodcastCats = listOf(
+                                docCategories.find { it.id == "doc12" },
+                                docCategories.find { it.id == "doc13" },
+                                docCategories.find { it.id == "doc14" }
+                            )
+                            ThreeColumnGrid(
+                                items = podcastCategories.indices.toList(),
+                                spacing = 12.dp
+                            ) { idx ->
+                                val (title, icon, tint) = podcastCategories[idx]
+                                val actualCat = docPodcastCats[idx]
+                                SectionCard(
+                                    title = title,
+                                    icon = icon,
+                                    iconTint = tint,
+                                    onClick = {
+                                        if (actualCat != null) onCategorySelected(actualCat)
+                                    }
+                                )
+                            }
+                        }
+
+                        item { Spacer(modifier = Modifier.height(24.dp)) }
+                    }
+                } else if (currentFolder == "Sample Learn") {
+                    // Navigated into Sample Learn: show all docCategories as a flat grid
+                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    ) {
+                        items(docCategories.size) { index ->
+                            val category = docCategories[index]
+                            SectionCard(
+                                title = category.title,
+                                icon = category.icon,
+                                iconTint = category.color,
+                                onClick = { onCategorySelected(category) }
                             )
                         }
                     }
                 } else {
-                    // No categories found
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No categories found",
+                            text = "Blank Page",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 16.sp
+                            fontSize = 18.sp
                         )
                     }
                 }
@@ -873,3 +926,125 @@ fun GridCategoryCard(
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────
+// SectionHeading  ──────── PRACTICE ────────
+// ─────────────────────────────────────────────────────────
+@Composable
+fun SectionHeading(title: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+            thickness = 1.dp
+        )
+        Text(
+            text = "  ${title.uppercase()}  ",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            letterSpacing = 1.5.sp,
+            textAlign = TextAlign.Center
+        )
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+            thickness = 1.dp
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────
+// SectionCard  – icon circle + label, white background
+// Matches the reference screenshot design exactly
+// ─────────────────────────────────────────────────────────
+@Composable
+fun SectionCard(
+    title: String,
+    icon: ImageVector,
+    iconTint: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .shadow(3.dp, RoundedCornerShape(14.dp))
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(14.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Circular colored icon background
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(iconTint.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = iconTint,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = iconTint,
+                textAlign = TextAlign.Center,
+                lineHeight = 16.sp,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────
+// ThreeColumnGrid  – renders items in a 3-column grid
+// (not lazy, so it can live inside a LazyColumn item)
+// ─────────────────────────────────────────────────────────
+@Composable
+fun ThreeColumnGrid(
+    items: List<Int>,
+    spacing: androidx.compose.ui.unit.Dp,
+    itemContent: @Composable (Int) -> Unit
+) {
+    val rows = (items.size + 2) / 3
+    Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
+        repeat(rows) { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(spacing)
+            ) {
+                repeat(3) { col ->
+                    val idx = row * 3 + col
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (idx < items.size) {
+                            itemContent(items[idx])
+                        }
+                        // else: empty cell naturally fills the row weight
+                    }
+                }
+            }
+        }
+    }
+}
+
