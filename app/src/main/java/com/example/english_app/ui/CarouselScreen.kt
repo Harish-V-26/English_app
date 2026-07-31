@@ -582,6 +582,41 @@ fun WordCard(
 @Composable
 fun getImageResId(imageName: String): Int {
     return when (imageName) {
+        "vt_bat" -> R.drawable.vt_bat
+        "vt_bank" -> R.drawable.vt_bank
+        "vt_bark" -> R.drawable.vt_bark
+        "vt_bow" -> R.drawable.vt_bow
+        "vt_fair" -> R.drawable.vt_fair
+        "vt_jam" -> R.drawable.vt_jam
+        "vt_lead" -> R.drawable.vt_lead
+        "vt_match" -> R.drawable.vt_match
+        "vt_spring" -> R.drawable.vt_spring
+        "vt_tire" -> R.drawable.vt_tire
+        "vt_current" -> R.drawable.vt_current
+        "vt_minute" -> R.drawable.vt_minute
+        "vt_scale" -> R.drawable.vt_scale
+        "vt_clip" -> R.drawable.vt_clip
+        "vt_bolt" -> R.drawable.vt_bolt
+        "vt_charge" -> R.drawable.vt_charge
+        "vt_spring2" -> R.drawable.vt_spring2
+        "vt_pitch" -> R.drawable.vt_pitch
+        "vt_console" -> R.drawable.vt_console
+        "vt_pound" -> R.drawable.vt_pound
+        "vt_suspend" -> R.drawable.vt_suspend
+        "vt_plot" -> R.drawable.vt_plot
+        "vt_monitor" -> R.drawable.vt_monitor
+        "vt_anchor" -> R.drawable.vt_anchor
+        "vt_appraise" -> R.drawable.vt_appraise
+        "vt_abstract_img" -> R.drawable.vt_abstract_img
+        "vt_racket" -> R.drawable.vt_racket
+        "vt_vault" -> R.drawable.vt_vault
+        "vt_alight" -> R.drawable.vt_alight
+        "vt_annotate" -> R.drawable.vt_annotate
+        "vt_conflate" -> R.drawable.vt_conflate
+        "vt_cower" -> R.drawable.vt_cower
+        "vt_dissipate" -> R.drawable.vt_dissipate
+        "vt_enervate" -> R.drawable.vt_enervate
+        "vt_convive" -> R.drawable.vt_convive
         "abstract_img" -> R.drawable.abstract_img
         "alight" -> R.drawable.alight
         "altercation" -> R.drawable.altercation

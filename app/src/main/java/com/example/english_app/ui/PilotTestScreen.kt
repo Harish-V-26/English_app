@@ -111,14 +111,11 @@ fun PilotTestScreen(onBack: () -> Unit) {
 
             question.options.forEachIndexed { index, option ->
                 val isSelected = selectedOption == index
-                val isCorrectOption = index == question.correctIndex
-                val showFeedback = selectedOption != null
 
-                val containerColor = when {
-                    !showFeedback -> MaterialTheme.colorScheme.surface
-                    isCorrectOption -> Color(0xFFC8E6C9)
-                    isSelected && !isCorrectOption -> Color(0xFFFFCDD2)
-                    else -> MaterialTheme.colorScheme.surface
+                val containerColor = if (isSelected) {
+                    VibrantPurple.copy(alpha = 0.2f)
+                } else {
+                    MaterialTheme.colorScheme.surface
                 }
 
                 Card(
@@ -131,7 +128,7 @@ fun PilotTestScreen(onBack: () -> Unit) {
                     onClick = {
                         if (selectedOption == null) {
                             selectedOption = index
-                            if (isCorrectOption) score++
+                            if (index == question.correctIndex) score++
                         }
                     }
                 ) {
@@ -139,15 +136,6 @@ fun PilotTestScreen(onBack: () -> Unit) {
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (showFeedback && isCorrectOption) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Correct",
-                                tint = Color(0xFF388E3C),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
                         Text(text = option, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
