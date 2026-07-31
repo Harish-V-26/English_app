@@ -513,23 +513,20 @@ fun HomeScreen(
                         item { Spacer(modifier = Modifier.height(24.dp)) }
                     }
                 } else if (currentFolder == "Sample Learn") {
-                    // Navigated into Sample Learn: show all docCategories as a flat grid
-                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-                        contentPadding = PaddingValues(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth().weight(1f)
-                    ) {
-                        items(docCategories.size) { index ->
-                            val category = docCategories[index]
-                            SectionCard(
-                                title = category.title,
-                                icon = category.icon,
-                                iconTint = category.color,
-                                onClick = { onCategorySelected(category) }
-                            )
-                        }
+                    // Sample Learn: show all 12 quiz words (first 2 from each of the 6 PDF categories)
+                    // as individual photo flashcards in a vertical list
+                    val sampleWords = (docWords1 + docWords2 + docWords3 + docWords4 + docWords5 + docWords6)
+                    val sampleCategory = Category(
+                        id = "sample_learn_words",
+                        title = "Sample Learn",
+                        description = "Learn with photos",
+                        color = VibrantBlue,
+                        icon = Icons.AutoMirrored.Filled.MenuBook,
+                        words = sampleWords
+                    )
+                    // Navigate directly into the carousel for all 12 words
+                    LaunchedEffect(Unit) {
+                        onCategorySelected(sampleCategory)
                     }
                 } else {
                     Box(
