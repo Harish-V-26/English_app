@@ -515,7 +515,7 @@ fun HomeScreen(
                 } else if (currentFolder == "Sample Learn") {
                     // Sample Learn: show all 12 quiz words (first 2 from each of the 6 PDF categories)
                     // as individual photo flashcards in a vertical list
-                    val sampleWords = (docWords1 + docWords2 + docWords3 + docWords4 + docWords5 + docWords6 + docWords7)
+                    val sampleWords = (docWords1 + docWords2 + docWords3 + docWords4 + docWords5 + docWords6 + docWords7 + docWordsPilot)
                     val sampleCategory = Category(
                         id = "sample_learn_words",
                         title = "Sample Learn",

@@ -143,5 +143,30 @@ val docCategories = listOf(
     Category("doc11", "Types of Weather", "Various weather conditions", VibrantOrange, Icons.Default.WbSunny, docWords11),
     Category("doc12", "Ted Talks", "Inspiring Ted Talk videos", VibrantGreen, Icons.Default.VideoLibrary, docWords12),
     Category("doc13", "Stories", "Engaging story videos", VibrantOrange, Icons.Default.MenuBook, docWords13),
-    Category("doc14", "Podcast Videos", "Interesting podcast videos", VibrantBlue, Icons.Default.Headphones, docWords14)
+    Category("doc14", "Podcast Videos", "Interesting podcast videos", VibrantBlue, Icons.Default.Headphones, docWords14),
+    Category("docPilot", "Pilot Quiz Words", "All words from the Pilot Test", Color(0xFFE91E63), Icons.Default.Quiz, docWordsPilot)
+)
+
+// ---------- Pilot Quiz Words (all 20 answers + distractors) ----------
+val docWordsPilot = listOf(
+    Word("Swift", "", "Moving or happening quickly.", "The police took swift action to arrest the thief.", "swift"),
+    Word("Drowsy", "", "Feeling sleepy and sluggish.", "I felt drowsy after the heavy dinner.", "drowsy"),
+    Word("Evade", "", "To escape or avoid something cleverly.", "The deer managed to evade the hunter.", "evade"),
+    Word("Ineffable", "", "Too great or extreme to be expressed in words.", "The mountain's beauty was truly ineffable.", "ineffable"),
+    Word("Jubilant", "", "Feeling or expressing great happiness.", "She was jubilant after securing first rank in the exam.", "jubilant"),
+    Word("Limerence", "", "A feeling of obsessive desire or infatuation for someone.", "His limerence for her made it hard to focus on work.", "limerance"),
+    Word("Querencia", "", "A place where you feel safe, at home, and comfortable.", "Her room was her querencia after a long day.", "querencia"),
+    Word("Smog", "", "Smoke mixed with fog — a type of air pollution.", "Smoke mixed with fog is known as smog.", "smog"),
+    Word("Brunch", "", "A meal eaten in late morning — Breakfast + Lunch.", "\"Breakfast + Lunch\" forms the word brunch.", "brunch"),
+    Word("Frenemy", "", "A person who is a friend but also a rival or enemy.", "A friend who behaves like an enemy is called a frenemy.", "frenemy"),
+    Word("Whisk", "", "To beat ingredients quickly to add air.", "She whisked the eggs to make an omelet.", "whisk"),
+    Word("Grate", "", "To shred food into small pieces using a grater.", "I grated coconut for the chutney.", "grate"),
+    Word("Ladle", "", "A large spoon with a long handle used to serve soup.", "The chef used a ladle to serve soup.", "ladle"),
+    Word("Mortar & Pestle", "", "A bowl and club used to grind spices and ingredients.", "My grandmother used a mortar and pestle to grind spices.", "doc5_mortar_pestle"),
+    Word("Blanch", "", "To briefly boil food then cool it quickly in cold water.", "She blanched tomatoes before peeling them.", "blanch"),
+    Word("Yank", "", "To pull something suddenly and with force.", "Robert suddenly pulled the window open — he yanked it.", "yank"),
+    Word("Tickle", "", "To touch lightly so as to cause laughter.", "The child laughed when I tickled him.", "tickle"),
+    Word("Nod", "", "To move the head up and down to show agreement.", "Students nod their heads while listening to the teacher.", "nod"),
+    Word("Flick", "", "To move something with a quick, light motion.", "John flicked the fan switch.", "flick"),
+    Word("Stutter", "", "To speak with sudden stops or repeated sounds.", "The baby stuttered while speaking to the stranger.", "stutter")
 )
