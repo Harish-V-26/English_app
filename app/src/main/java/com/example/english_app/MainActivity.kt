@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.example.english_app
 
 import android.os.Bundle
