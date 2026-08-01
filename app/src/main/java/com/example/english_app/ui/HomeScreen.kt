@@ -513,9 +513,8 @@ fun HomeScreen(
                         item { Spacer(modifier = Modifier.height(24.dp)) }
                     }
                 } else if (currentFolder == "Sample Learn") {
-                    // Sample Learn: show all 12 quiz words (first 2 from each of the 6 PDF categories)
-                    // as individual photo flashcards in a vertical list
-                    val sampleWords = (docWords1 + docWords2 + docWords3 + docWords4 + docWords5 + docWords6 + docWords7 + pilotQuizWords)
+                    // Sample Learn: show all 25 pilot quiz words with images
+                    val sampleWords = docWordsPilot
                     val sampleCategory = Category(
                         id = "sample_learn_words",
                         title = "Sample Learn",
@@ -524,7 +523,7 @@ fun HomeScreen(
                         icon = Icons.AutoMirrored.Filled.MenuBook,
                         words = sampleWords
                     )
-                    // Navigate directly into the carousel for all 12 words
+                    // Navigate directly into the carousel for all 25 words
                     LaunchedEffect(Unit) {
                         onCategorySelected(sampleCategory)
                     }

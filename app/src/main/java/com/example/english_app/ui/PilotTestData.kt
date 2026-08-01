@@ -91,6 +91,26 @@ val pilotTestQuestions = listOf(
     PilotTestQuestion(
         "The baby ______ while speaking to the stranger.",
         listOf("sighed", "stuttered", "leaped", "giggled"), 1
+    ),
+    PilotTestQuestion(
+        "The museum exhibited a ______ statue of extraordinary size.",
+        listOf("meager", "colossal", "tenuous", "tardy"), 1
+    ),
+    PilotTestQuestion(
+        "The professor offered a ______ of useful information to the students.",
+        listOf("single", "scarce", "myriad", "minute"), 2
+    ),
+    PilotTestQuestion(
+        "A flying mammal and a wooden sports equipment both share the name:",
+        listOf("Bat", "Ball", "Bank", "Bark"), 0
+    ),
+    PilotTestQuestion(
+        "A financial institution and the land alongside a river are both called a:",
+        listOf("Vault", "Bank", "Shore", "Beach"), 1
+    ),
+    PilotTestQuestion(
+        "Cooking food in a shallow pan with oil over high heat is called:",
+        listOf("Bake", "Freeze", "Boil", "Sauté"), 3
     )
 )
 
