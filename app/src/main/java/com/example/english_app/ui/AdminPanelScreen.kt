@@ -226,7 +226,7 @@ fun AdminPanelScreen(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown)
                         },
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                             .fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = VibrantPurple,
@@ -286,7 +286,7 @@ fun AdminPanelScreen(
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoryDropdown)
                             },
                             modifier = Modifier
-                                .menuAnchor()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                                 .fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = VibrantPurple,
