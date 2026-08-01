@@ -55,7 +55,7 @@ import com.example.english_app.data.UserProgressRepository
 
 private const val ALLOWED_DOMAIN = "@srcas.ac.in"
 
-@androidx.compose.material3.ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
     onSignUpClick: (String, String, String, Boolean) -> Unit = { _, _, _, _ -> },
