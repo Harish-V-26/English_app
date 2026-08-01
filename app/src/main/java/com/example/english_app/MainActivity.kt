@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import com.example.english_app.data.UserProgressRepository
 import com.example.english_app.data.UserProfile
 
+@Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var googleSignInClient: GoogleSignInClient
