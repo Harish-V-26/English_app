@@ -1,6 +1,10 @@
 package com.example.english_app.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import com.example.english_app.ui.theme.*
 import androidx.compose.ui.graphics.Color
@@ -160,17 +164,17 @@ val docWordsPilot = listOf(
 
 val docCategories = listOf(
     Category("doc1", "Advanced Vocabulary", "Rich, expressive words for advanced learners", VibrantPurple, Icons.Default.AutoStories, docWords1),
-    Category("doc2", "Basic Vocabulary", "Everyday words to build a strong foundation", VibrantTeal, Icons.Default.MenuBook, docWords2),
-    Category("doc3", "Basic vs Advanced", "Simple words paired with their advanced equivalents", VibrantOrange, Icons.Default.CompareArrows, docWords3),
+    Category("doc2", "Basic Vocabulary", "Everyday words to build a strong foundation", VibrantTeal, Icons.AutoMirrored.Filled.MenuBook, docWords2),
+    Category("doc3", "Basic vs Advanced", "Simple words paired with their advanced equivalents", VibrantOrange, Icons.AutoMirrored.Filled.CompareArrows, docWords3),
     Category("doc4", "Blended Words", "Portmanteau words formed by blending two words", VibrantPink, Icons.Default.Shuffle, docWords4),
     Category("doc5", "Kitchen Vocabulary", "Cooking tools, spices, and kitchen terms", VibrantGreen, Icons.Default.Kitchen, docWords5),
-    Category("doc6", "Movement Vocabulary", "Words describing small actions and gestures", VibrantBlue, Icons.Default.DirectionsRun, docWords6),
+    Category("doc6", "Movement Vocabulary", "Words describing small actions and gestures", VibrantBlue, Icons.AutoMirrored.Filled.DirectionsRun, docWords6),
     Category("doc7", "Vocab Twist", "Homographs — one word, multiple meanings", VibrantYellow, Icons.Default.SwapHoriz, docWords7),
     Category("doc8", "Types of Eating", "Different ways to eat", VibrantPink, Icons.Default.Restaurant, docWords8),
     Category("doc9", "Types of LSRW and Looking", "Listening, Speaking, Reading, Writing, Looking", VibrantBlue, Icons.Default.Visibility, docWords9),
-    Category("doc10", "Types of Walking", "Different ways of walking", VibrantPurple, Icons.Default.DirectionsWalk, docWords10),
+    Category("doc10", "Types of Walking", "Different ways of walking", VibrantPurple, Icons.AutoMirrored.Filled.DirectionsWalk, docWords10),
     Category("doc11", "Types of Weather", "Various weather conditions", VibrantOrange, Icons.Default.WbSunny, docWords11),
     Category("doc12", "Ted Talks", "Inspiring Ted Talk videos", VibrantGreen, Icons.Default.VideoLibrary, docWords12),
-    Category("doc13", "Stories", "Engaging story videos", VibrantOrange, Icons.Default.MenuBook, docWords13),
+    Category("doc13", "Stories", "Engaging story videos", VibrantOrange, Icons.AutoMirrored.Filled.MenuBook, docWords13),
     Category("doc14", "Podcast Videos", "Interesting podcast videos", VibrantBlue, Icons.Default.Headphones, docWords14)
 )

@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -130,7 +132,7 @@ fun DashboardScreen(
                         }
                         IconButton(onClick = onLogout) {
                             Icon(
-                                imageVector = Icons.Default.Logout,
+                                imageVector = Icons.AutoMirrored.Filled.Logout,
                                 contentDescription = "Logout",
                                 tint = Color.White
                             )
@@ -539,7 +541,7 @@ fun QuickActions(onNavigateToHome: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 QuickActionButton(
-                    icon = Icons.Default.MenuBook,
+                    icon = Icons.AutoMirrored.Filled.MenuBook,
                     text = "Categories",
                     onClick = onNavigateToHome,
                     color = VibrantBlue

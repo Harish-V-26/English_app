@@ -407,11 +407,11 @@ fun HomeScreen(
                             // Photos categories: doc1..doc7
                             val photosCategories = listOf(
                                 Triple("Advanced Vocabulary", Icons.Default.AutoStories, VibrantPurple),
-                                Triple("Basic Vocabulary",    Icons.Default.MenuBook,    VibrantTeal),
-                                Triple("Basic vs Advanced",   Icons.Default.CompareArrows, VibrantOrange),
+                                Triple("Basic Vocabulary",    Icons.AutoMirrored.Filled.MenuBook,    VibrantTeal),
+                                Triple("Basic vs Advanced",   Icons.AutoMirrored.Filled.CompareArrows, VibrantOrange),
                                 Triple("Blended Words",       Icons.Default.Shuffle,     VibrantPink),
                                 Triple("Kitchen Vocabulary",  Icons.Default.Kitchen,     VibrantGreen),
-                                Triple("Movement Vocabulary", Icons.Default.DirectionsRun, VibrantBlue),
+                                Triple("Movement Vocabulary", Icons.AutoMirrored.Filled.DirectionsRun, VibrantBlue),
                                 Triple("Vocab Twist",         Icons.Default.SwapHoriz,   Color(0xFF795548)) // dark brown
                             )
                             val docPhotosCats = listOf(
@@ -450,7 +450,7 @@ fun HomeScreen(
                             val videosCategories = listOf(
                                 Triple("Types of Eating",            Icons.Default.Restaurant,     VibrantPink),
                                 Triple("Types of LSRW and Looking",  Icons.Default.Visibility,     VibrantBlue),
-                                Triple("Types of Walking",           Icons.Default.DirectionsWalk, VibrantGreen),
+                                Triple("Types of Walking",           Icons.AutoMirrored.Filled.DirectionsWalk, VibrantGreen),
                                 Triple("Types of Weather",           Icons.Default.WbSunny,        VibrantOrange)
                             )
                             val docVideoCats = listOf(
@@ -485,7 +485,7 @@ fun HomeScreen(
                         item {
                             val podcastCategories = listOf(
                                 Triple("Ted Talks",      Icons.Default.Mic,        VibrantPink),
-                                Triple("Stories",        Icons.Default.MenuBook,   VibrantGreen),
+                                Triple("Stories",        Icons.AutoMirrored.Filled.MenuBook,   VibrantGreen),
                                 Triple("Podcast Videos", Icons.Default.Headphones, VibrantPurple)
                             )
                             val docPodcastCats = listOf(
