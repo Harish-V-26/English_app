@@ -162,7 +162,17 @@ val docWordsPilot = listOf(
     Word("Sauté", "", "Cooking in a pan with oil over medium to high heat.", "Onions are sautéed until they turn golden brown.", "saute")
 )
 
+val sampleLearnCategory = Category(
+    id = "doc0",
+    title = "Sample Learn",
+    description = "Practice with photos for all 25 quiz words",
+    color = VibrantBlue,
+    icon = Icons.AutoMirrored.Filled.MenuBook,
+    words = docWordsPilot
+)
+
 val docCategories = listOf(
+    sampleLearnCategory,
     Category("doc1", "Advanced Vocabulary", "Rich, expressive words for advanced learners", VibrantPurple, Icons.Default.AutoStories, docWords1),
     Category("doc2", "Basic Vocabulary", "Everyday words to build a strong foundation", VibrantTeal, Icons.AutoMirrored.Filled.MenuBook, docWords2),
     Category("doc3", "Basic vs Advanced", "Simple words paired with their advanced equivalents", VibrantOrange, Icons.AutoMirrored.Filled.CompareArrows, docWords3),

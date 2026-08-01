@@ -376,11 +376,12 @@ fun HomeScreen(
                             ) {
                                 // Sample Learn — 1/3 width
                                 Box(modifier = Modifier.weight(1f)) {
+                                    val sampleCat = docCategories.find { it.id == "doc0" } ?: sampleLearnCategory
                                     SectionCard(
                                         title = "Sample Learn",
                                         icon = Icons.AutoMirrored.Filled.MenuBook,
                                         iconTint = VibrantBlue,
-                                        onClick = { currentFolder = "Sample Learn" }
+                                        onClick = { onCategorySelected(sampleCat) }
                                     )
                                 }
                                 // Practice & Take a Quiz — 1/3 width
@@ -511,21 +512,6 @@ fun HomeScreen(
                         }
 
                         item { Spacer(modifier = Modifier.height(24.dp)) }
-                    }
-                } else if (currentFolder == "Sample Learn") {
-                    // Sample Learn: show all 25 pilot quiz words with images
-                    val sampleWords = docWordsPilot
-                    val sampleCategory = Category(
-                        id = "sample_learn_words",
-                        title = "Sample Learn",
-                        description = "Learn with photos",
-                        color = VibrantBlue,
-                        icon = Icons.AutoMirrored.Filled.MenuBook,
-                        words = sampleWords
-                    )
-                    // Navigate directly into the carousel for all 25 words
-                    LaunchedEffect(Unit) {
-                        onCategorySelected(sampleCategory)
                     }
                 } else {
                     Box(

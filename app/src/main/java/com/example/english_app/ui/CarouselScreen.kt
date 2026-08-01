@@ -79,11 +79,12 @@ fun CarouselScreen(
     var difficultyRating by remember { mutableIntStateOf(0) }
     var showDetails by remember { mutableStateOf(false) }
     
-    val words = category.words
-    val currentWord = words[currentWordIndex]
+    val words = category.words.ifEmpty { listOf(Word("No Words", "", "No words available", "", "")) }
+    val safeIndex = currentWordIndex.coerceIn(0, words.size - 1)
+    val currentWord = words[safeIndex]
 
     // Load this word's saved favorite/bookmark/difficulty state from Firestore
-    LaunchedEffect(currentWordIndex, category.id) {
+    LaunchedEffect(safeIndex, category.id) {
         UserProgressRepository.loadWordProgress(category.id, currentWord.word) { favorite, bookmarked, difficulty ->
             isFavorite = favorite
             isBookmarked = bookmarked

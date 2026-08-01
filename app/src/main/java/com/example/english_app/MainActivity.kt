@@ -241,8 +241,9 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) { backStackEntry ->
                             val categoryIndex = backStackEntry.arguments?.getInt("categoryIndex") ?: 0
+                            val selectedCat = categories.getOrNull(categoryIndex) ?: categories.firstOrNull() ?: sampleLearnCategory
                             CarouselScreen(
-                                category = categories[categoryIndex],
+                                category = selectedCat,
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
                                     navController.navigate("login") {
@@ -264,7 +265,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             HomeScreen(
                                 onCategorySelected = { category ->
-                                    val idx = categories.indexOf(category)
+                                    val idx = categories.indexOfFirst { it.id == category.id }.takeIf { it >= 0 } ?: 0
                                     navController.navigate("carousel/$idx")
                                 },
                                 onDashboard = { navController.navigate("dashboard") },
