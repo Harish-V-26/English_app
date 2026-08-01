@@ -241,7 +241,7 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) { backStackEntry ->
                             val categoryIndex = backStackEntry.arguments?.getInt("categoryIndex") ?: 0
-                            val selectedCat = categories.getOrNull(categoryIndex) ?: categories.firstOrNull() ?: sampleLearnCategory
+                            val selectedCat = categories.getOrElse(categoryIndex) { categories.first() }
                             CarouselScreen(
                                 category = selectedCat,
                                 onBack = { navController.popBackStack() },
