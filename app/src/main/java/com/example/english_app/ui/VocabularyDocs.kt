@@ -87,6 +87,46 @@ val docWords7 = listOf(
     */
 )
 
+// ---------- Pilot Quiz Words ----------
+val pilotQuizWords = listOf(
+    Word("Swift", "", "Moving very fast.", "The police took swift action to arrest the thief.", "swift"),
+    Word("Drowsy", "", "Feeling sleepy.", "I felt drowsy after the heavy dinner.", "drowsy"),
+    Word("Evade", "", "To escape or avoid.", "The deer managed to evade the hunter.", "evade"),
+    Word("Ineffable", "", "Too great to be described in words.", "The mountain's beauty was truly ineffable.", "ineffable"),
+    Word("Jubilant", "", "Feeling great happiness and triumph.", "She was jubilant after securing first rank in the exam.", "jubilant"),
+    Word("Limerence", "", "A feeling of obsessive desire for someone.", "He couldn't concentrate because of his limerence.", "limerance"),
+    Word("Querencia", "", "A place where you feel safe and comfortable.", "Her grandmother's house was her querencia.", "querencia"),
+    Word("Cozy", "", "Warm and comfortable.", "The living room felt cozy with the fireplace.", "cozy"),
+    Word("Frenemy", "", "A friend who behaves like an enemy.", "She realized her classmate was a frenemy.", "frenemy"),
+    Word("Blog", "", "Web + Log — an online journal.", "She writes a blog about travel and food.", "blog"),
+    Word("Motel", "", "Motor + Hotel — a roadside hotel.", "We stayed at a motel during the road trip.", "motel"),
+    Word("Chillax", "", "Chill + Relax — to calm down and relax.", "Let's chillax this weekend.", "chillax"),
+    Word("Grate", "", "To shred food into small pieces using a grater.", "I grated coconut for the chutney.", "grate"),
+    Word("Ladle", "", "A large spoon used for serving soup.", "The chef used a ladle to serve soup.", "ladle"),
+    Word("Mortar", "", "A bowl used with a pestle to grind spices.", "My grandmother used a mortar and pestle to grind spices.", "mortar_and_pestle"),
+    Word("Blanch", "", "To briefly boil food then plunge into cold water.", "She blanched tomatoes before peeling them.", "blanch"),
+    Word("Mash", "", "To crush food until soft.", "She mashed the potatoes for dinner.", "mash"),
+    Word("Knead", "", "To press and fold dough with hands.", "She kneaded the dough to make chapati.", "knead"),
+    Word("Tongs", "", "A tool for gripping and lifting things.", "He used tongs to turn the meat on the grill.", "tongs"),
+    Word("Yank", "", "To pull something hard and quickly.", "Robert suddenly yanked the window open.", "yank"),
+    Word("Tickle", "", "To touch lightly causing laughter.", "The child laughed when I tickled him.", "tickle"),
+    Word("Nod", "", "To move the head up and down to agree.", "Students nodded their heads while listening to the teacher.", "nod"),
+    Word("Flick", "", "To make a quick, light movement.", "John flicked the fan switch.", "flick"),
+    Word("Stutter", "", "To speak with difficulty, repeating sounds.", "The baby stuttered while speaking to the stranger.", "stutter"),
+    Word("Ponder", "", "To think carefully about something.", "She pondered the question before answering.", "ponder"),
+    Word("Blink", "", "To close and open eyes quickly.", "She blinked in the bright sunlight.", "blink"),
+    Word("Glance", "", "To take a brief look.", "He glanced at his watch during the meeting.", "glance"),
+    Word("Poignant", "", "Evoking a keen sense of sadness.", "The farewell speech was poignant.", "poignant"),
+    Word("Halcyon", "", "Denoting a calm, peaceful time.", "She remembered the halcyon days of her childhood.", "halycon"),
+    Word("Equanimity", "", "Calmness and composure in difficulty.", "He faced the crisis with equanimity.", "equanimity"),
+    Word("Serendipity", "", "Finding something good by chance.", "Meeting her best friend was pure serendipity.", "serendipity"),
+    Word("Chortle", "", "Chuckle + Snort — a joyful laugh.", "He chortled at the funny joke.", "chortle"),
+    Word("Sigh", "", "To exhale audibly expressing sadness or relief.", "She sighed with relief after the exam.", "sigh"),
+    Word("Leap", "", "To jump high or far.", "The frog leaped into the pond.", "leap"),
+    Word("Poke", "", "To push or prod with finger.", "She poked him to get his attention.", "poke"),
+    Word("Giggle", "", "To laugh lightly in a silly way.", "The children giggled at the clown.", "giggle")
+)
+
 // ---------- Document 8: Types of Eating ----------
 val docWords8 = listOf(
     Word("Nibble", "", "eat small bites", "The child nibbles the biscuit.", "nibble"),
@@ -129,30 +169,6 @@ val docWords14 = listOf(
     Word("Podcast Videos", "", "Links 6-10", "https://youtu.be/-SHjj68WaLs?si=HAcCGC2CQE4rjdF1\nhttps://youtu.be/0y185Tz39lk?si=CSSvbbR42WHkOwyS\nhttps://youtu.be/Y__k1dLo-eo?si=Iba2lEOPcaGANSIL\nhttps://youtu.be/eabT4z25qxE?si=6bvgEAEYbKidGipj\nhttps://youtu.be/3Mr4mGMALwI?si=FcZn5gCg1S-QoJub", "")
 )
 
-// ---------- Pilot Quiz Words (all 20 answers + distractors) ----------
-val docWordsPilot = listOf(
-    Word("Swift", "", "Moving or happening quickly.", "The police took swift action to arrest the thief.", "swift"),
-    Word("Drowsy", "", "Feeling sleepy and sluggish.", "I felt drowsy after the heavy dinner.", "drowsy"),
-    Word("Evade", "", "To escape or avoid something cleverly.", "The deer managed to evade the hunter.", "evade"),
-    Word("Ineffable", "", "Too great or extreme to be expressed in words.", "The mountain's beauty was truly ineffable.", "ineffable"),
-    Word("Jubilant", "", "Feeling or expressing great happiness.", "She was jubilant after securing first rank in the exam.", "jubilant"),
-    Word("Limerence", "", "A feeling of obsessive desire or infatuation for someone.", "His limerence for her made it hard to focus on work.", "limerance"),
-    Word("Querencia", "", "A place where you feel safe, at home, and comfortable.", "Her room was her querencia after a long day.", "querencia"),
-    Word("Smog", "", "Smoke mixed with fog — a type of air pollution.", "Smoke mixed with fog is known as smog.", "smog"),
-    Word("Brunch", "", "A meal eaten in late morning — Breakfast + Lunch.", "\"Breakfast + Lunch\" forms the word brunch.", "brunch"),
-    Word("Frenemy", "", "A person who is a friend but also a rival or enemy.", "A friend who behaves like an enemy is called a frenemy.", "frenemy"),
-    Word("Whisk", "", "To beat ingredients quickly to add air.", "She whisked the eggs to make an omelet.", "whisk"),
-    Word("Grate", "", "To shred food into small pieces using a grater.", "I grated coconut for the chutney.", "grate"),
-    Word("Ladle", "", "A large spoon with a long handle used to serve soup.", "The chef used a ladle to serve soup.", "ladle"),
-    Word("Mortar & Pestle", "", "A bowl and club used to grind spices and ingredients.", "My grandmother used a mortar and pestle to grind spices.", "doc5_mortar_pestle"),
-    Word("Blanch", "", "To briefly boil food then cool it quickly in cold water.", "She blanched tomatoes before peeling them.", "blanch"),
-    Word("Yank", "", "To pull something suddenly and with force.", "Robert suddenly pulled the window open — he yanked it.", "yank"),
-    Word("Tickle", "", "To touch lightly so as to cause laughter.", "The child laughed when I tickled him.", "tickle"),
-    Word("Nod", "", "To move the head up and down to show agreement.", "Students nod their heads while listening to the teacher.", "nod"),
-    Word("Flick", "", "To move something with a quick, light motion.", "John flicked the fan switch.", "flick"),
-    Word("Stutter", "", "To speak with sudden stops or repeated sounds.", "The baby stuttered while speaking to the stranger.", "stutter")
-)
-
 val docCategories = listOf(
     Category("doc1", "Advanced Vocabulary", "Rich, expressive words for advanced learners", VibrantPurple, Icons.Default.AutoStories, docWords1),
     Category("doc2", "Basic Vocabulary", "Everyday words to build a strong foundation", VibrantTeal, Icons.Default.MenuBook, docWords2),
@@ -167,7 +183,5 @@ val docCategories = listOf(
     Category("doc11", "Types of Weather", "Various weather conditions", VibrantOrange, Icons.Default.WbSunny, docWords11),
     Category("doc12", "Ted Talks", "Inspiring Ted Talk videos", VibrantGreen, Icons.Default.VideoLibrary, docWords12),
     Category("doc13", "Stories", "Engaging story videos", VibrantOrange, Icons.Default.MenuBook, docWords13),
-    Category("doc14", "Podcast Videos", "Interesting podcast videos", VibrantBlue, Icons.Default.Headphones, docWords14),
-    Category("docPilot", "Pilot Quiz Words", "All words from the Pilot Test", Color(0xFFE91E63), Icons.Default.Quiz, docWordsPilot)
+    Category("doc14", "Podcast Videos", "Interesting podcast videos", VibrantBlue, Icons.Default.Headphones, docWords14)
 )
-
