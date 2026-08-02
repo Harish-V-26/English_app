@@ -358,36 +358,102 @@ fun WordCard(
         shape = RoundedCornerShape(20.dp)
     ) {
         if (categoryId in listOf("doc12", "doc13", "doc14")) {
-            Box(
+            // ── TED Talk Video Card Layout ──
+            val uriHandler = LocalUriHandler.current
+            val youtubeUrl = word.example
+            val videoId = word.imageUrl
+            val thumbnailUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
-                    .background(Color(0xFFF8F8FF), RoundedCornerShape(12.dp))
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
+                // Video Title
+                Text(
+                    text = word.word,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    lineHeight = 24.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Subtitle / label
+                if (word.definition.isNotBlank()) {
+                    Text(
+                        text = word.definition,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                // Thumbnail — full-width, 16:9 ratio, rounded corners
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { uriHandler.openUri(youtubeUrl) }
                 ) {
-                    val lines = word.example.split("\n")
-                    val uriHandler = LocalUriHandler.current
-                    lines.forEach { line ->
-                        if (line.startsWith("http")) {
-                            Text(
-                                text = line,
-                                fontSize = 16.sp,
-                                color = Color(0xFF1D1BCC),
-                                textDecoration = TextDecoration.Underline,
-                                lineHeight = 28.sp,
-                                modifier = Modifier
-                                    .padding(vertical = 8.dp)
-                                    .clickable {
-                                        uriHandler.openUri(line)
-                                    }
+                    AsyncImage(
+                        model = thumbnailUrl,
+                        contentDescription = "Thumbnail for ${word.word}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                    // Play button overlay
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(Color.White.copy(alpha = 0.85f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.PlayArrow,
+                                contentDescription = "Play",
+                                tint = Color(0xFFE53935),
+                                modifier = Modifier.size(36.dp)
                             )
                         }
                     }
+                }
+
+                // "Watch on YouTube" green button
+                Button(
+                    onClick = { uriHandler.openUri(youtubeUrl) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayCircle,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "🔗 Watch on YouTube",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
                 }
             }
         } else {

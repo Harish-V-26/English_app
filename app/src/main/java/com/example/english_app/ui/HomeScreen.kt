@@ -445,7 +445,7 @@ fun HomeScreen(
                         // Section 3 · LEARNING WITH VIDEOS
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Learning with Videos")
+                            SectionHeading(title = "Learning With GIF")
                         }
                         item {
                             val videosCategories = listOf(
@@ -481,7 +481,7 @@ fun HomeScreen(
                         // Section 4 · PODCAST
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Podcast")
+                            SectionHeading(title = "Brocast")
                         }
                         item {
                             val podcastCategories = listOf(
