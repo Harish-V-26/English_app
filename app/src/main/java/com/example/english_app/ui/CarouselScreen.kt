@@ -532,8 +532,10 @@ fun WordCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .height(260.dp)
                     .clip(RoundedCornerShape(14.dp))
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
             ) {
                 if (word.imageUrl.isBlank()) {
                     Box(
@@ -571,7 +573,9 @@ fun WordCard(
                     Image(
                         painter = painterResource(id = getImageResId(word.imageUrl)),
                         contentDescription = "Image for ${word.word}",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp),
                         contentScale = ContentScale.Fit
                     )
                 }

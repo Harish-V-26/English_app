@@ -481,7 +481,7 @@ fun HomeScreen(
                         // Section 4 · PODCAST
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Brocast")
+                            SectionHeading(title = "Boardcast")
                         }
                         item {
                             val podcastCategories = listOf(
