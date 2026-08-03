@@ -376,11 +376,12 @@ fun HomeScreen(
                             ) {
                                 // Sample Learn — 1/3 width
                                 Box(modifier = Modifier.weight(1f)) {
+                                    val sampleCat = docCategories.find { it.id == "doc0" } ?: sampleLearnCategory
                                     SectionCard(
                                         title = "Sample Learn",
                                         icon = Icons.AutoMirrored.Filled.MenuBook,
                                         iconTint = VibrantBlue,
-                                        onClick = { currentFolder = "Sample Learn" }
+                                        onClick = { onCategorySelected(sampleCat) }
                                     )
                                 }
                                 // Practice & Take a Quiz — 1/3 width
@@ -407,11 +408,11 @@ fun HomeScreen(
                             // Photos categories: doc1..doc7
                             val photosCategories = listOf(
                                 Triple("Advanced Vocabulary", Icons.Default.AutoStories, VibrantPurple),
-                                Triple("Basic Vocabulary",    Icons.Default.MenuBook,    VibrantTeal),
-                                Triple("Basic vs Advanced",   Icons.Default.CompareArrows, VibrantOrange),
+                                Triple("Basic Vocabulary",    Icons.AutoMirrored.Filled.MenuBook,    VibrantTeal),
+                                Triple("Basic vs Advanced",   Icons.AutoMirrored.Filled.CompareArrows, VibrantOrange),
                                 Triple("Blended Words",       Icons.Default.Shuffle,     VibrantPink),
                                 Triple("Kitchen Vocabulary",  Icons.Default.Kitchen,     VibrantGreen),
-                                Triple("Movement Vocabulary", Icons.Default.DirectionsRun, VibrantBlue),
+                                Triple("Movement Vocabulary", Icons.AutoMirrored.Filled.DirectionsRun, VibrantBlue),
                                 Triple("Vocab Twist",         Icons.Default.SwapHoriz,   Color(0xFF795548)) // dark brown
                             )
                             val docPhotosCats = listOf(
@@ -444,13 +445,13 @@ fun HomeScreen(
                         // Section 3 · LEARNING WITH VIDEOS
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Learning with Videos")
+                            SectionHeading(title = "Learning With GIF")
                         }
                         item {
                             val videosCategories = listOf(
                                 Triple("Types of Eating",            Icons.Default.Restaurant,     VibrantPink),
                                 Triple("Types of LSRW and Looking",  Icons.Default.Visibility,     VibrantBlue),
-                                Triple("Types of Walking",           Icons.Default.DirectionsWalk, VibrantGreen),
+                                Triple("Types of Walking",           Icons.AutoMirrored.Filled.DirectionsWalk, VibrantGreen),
                                 Triple("Types of Weather",           Icons.Default.WbSunny,        VibrantOrange)
                             )
                             val docVideoCats = listOf(
@@ -480,12 +481,12 @@ fun HomeScreen(
                         // Section 4 · PODCAST
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Podcast")
+                            SectionHeading(title = "Boardcast")
                         }
                         item {
                             val podcastCategories = listOf(
                                 Triple("Ted Talks",      Icons.Default.Mic,        VibrantPink),
-                                Triple("Stories",        Icons.Default.MenuBook,   VibrantGreen),
+                                Triple("Stories",        Icons.AutoMirrored.Filled.MenuBook,   VibrantGreen),
                                 Triple("Podcast Videos", Icons.Default.Headphones, VibrantPurple)
                             )
                             val docPodcastCats = listOf(
@@ -511,25 +512,6 @@ fun HomeScreen(
                         }
 
                         item { Spacer(modifier = Modifier.height(24.dp)) }
-                    }
-                } else if (currentFolder == "Sample Learn") {
-                    // Navigated into Sample Learn: show all docCategories as a flat grid
-                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-                        contentPadding = PaddingValues(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth().weight(1f)
-                    ) {
-                        items(docCategories.size) { index ->
-                            val category = docCategories[index]
-                            SectionCard(
-                                title = category.title,
-                                icon = category.icon,
-                                iconTint = category.color,
-                                onClick = { onCategorySelected(category) }
-                            )
-                        }
                     }
                 } else {
                     Box(

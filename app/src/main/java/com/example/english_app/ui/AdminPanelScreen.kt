@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -225,7 +226,7 @@ fun AdminPanelScreen(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown)
                         },
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                             .fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = VibrantPurple,
@@ -285,7 +286,7 @@ fun AdminPanelScreen(
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoryDropdown)
                             },
                             modifier = Modifier
-                                .menuAnchor()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                                 .fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = VibrantPurple,
@@ -367,7 +368,7 @@ fun AdminPanelScreen(
                             modifier = Modifier.weight(1f),
                             title = "Avg Score",
                             value = "$avgScore%",
-                            icon = Icons.Default.TrendingUp,
+                            icon = Icons.AutoMirrored.Filled.TrendingUp,
                             color = VibrantOrange
                         )
                     }

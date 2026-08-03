@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.example.english_app
 
 import android.os.Bundle
@@ -53,7 +54,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import com.example.english_app.data.UserProgressRepository
 import com.example.english_app.data.UserProfile
 
-@androidx.compose.material3.ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -242,8 +242,9 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) { backStackEntry ->
                             val categoryIndex = backStackEntry.arguments?.getInt("categoryIndex") ?: 0
+                            val selectedCat = categories.getOrElse(categoryIndex) { categories.first() }
                             CarouselScreen(
-                                category = categories[categoryIndex],
+                                category = selectedCat,
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
                                     navController.navigate("login") {
@@ -265,7 +266,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             HomeScreen(
                                 onCategorySelected = { category ->
-                                    val idx = categories.indexOf(category)
+                                    val idx = categories.indexOfFirst { it.id == category.id }.takeIf { it >= 0 } ?: 0
                                     navController.navigate("carousel/$idx")
                                 },
                                 onDashboard = { navController.navigate("dashboard") },
