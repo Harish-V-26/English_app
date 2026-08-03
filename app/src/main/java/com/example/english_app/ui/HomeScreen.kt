@@ -9,6 +9,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.alpha
+import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.*
@@ -181,10 +185,26 @@ fun HomeScreen(
         }
     }
     
-    // Set language after TTS is initialized
+    // Set language to British English after TTS is initialized
     LaunchedEffect(isTtsInitialized) {
         if (isTtsInitialized) {
-            tts.language = Locale.US
+            val ukLocale = Locale.UK
+            val result = tts.setLanguage(ukLocale)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                tts.language = Locale("en", "GB")
+            }
+            try {
+                val ukVoice = tts.voices?.firstOrNull { voice ->
+                    val loc = voice.locale
+                    (loc.language.equals("en", ignoreCase = true) || loc.language.equals("eng", ignoreCase = true)) &&
+                    (loc.country.equals("GB", ignoreCase = true) || loc.country.equals("UK", ignoreCase = true) || loc.country.equals("GBR", ignoreCase = true))
+                }
+                if (ukVoice != null) {
+                    tts.voice = ukVoice
+                }
+            } catch (e: Exception) {
+                // Fallback to default British locale
+            }
         }
     }
     
@@ -402,7 +422,7 @@ fun HomeScreen(
                         // Section 2 · LEARNING WITH PHOTOS
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Learning with Photos")
+                            SectionHeading(title = "Learning with Photos", isLocked = true)
                         }
                         item {
                             // Photos categories: doc1..doc7
@@ -434,6 +454,7 @@ fun HomeScreen(
                                     title = title,
                                     icon = icon,
                                     iconTint = tint,
+                                    isLocked = true,
                                     onClick = {
                                         if (actualCat != null) onCategorySelected(actualCat)
                                     }
@@ -445,7 +466,7 @@ fun HomeScreen(
                         // Section 3 · LEARNING WITH VIDEOS
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Learning With GIF")
+                            SectionHeading(title = "Learning With GIF", isLocked = true)
                         }
                         item {
                             val videosCategories = listOf(
@@ -470,6 +491,7 @@ fun HomeScreen(
                                     title = title,
                                     icon = icon,
                                     iconTint = tint,
+                                    isLocked = true,
                                     onClick = {
                                         if (actualCat != null) onCategorySelected(actualCat)
                                     }
@@ -481,7 +503,7 @@ fun HomeScreen(
                         // Section 4 · PODCAST
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Boardcast")
+                            SectionHeading(title = "Boardcast", isLocked = true)
                         }
                         item {
                             val podcastCategories = listOf(
@@ -504,6 +526,7 @@ fun HomeScreen(
                                     title = title,
                                     icon = icon,
                                     iconTint = tint,
+                                    isLocked = true,
                                     onClick = {
                                         if (actualCat != null) onCategorySelected(actualCat)
                                     }
@@ -913,7 +936,7 @@ fun GridCategoryCard(
 // SectionHeading  ──────── PRACTICE ────────
 // ─────────────────────────────────────────────────────────
 @Composable
-fun SectionHeading(title: String) {
+fun SectionHeading(title: String, isLocked: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -925,14 +948,27 @@ fun SectionHeading(title: String) {
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
             thickness = 1.dp
         )
-        Text(
-            text = "  ${title.uppercase()}  ",
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            letterSpacing = 1.5.sp,
-            textAlign = TextAlign.Center
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            if (isLocked) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = "Locked",
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                    modifier = Modifier.size(14.dp).padding(end = 4.dp)
+                )
+            }
+            Text(
+                text = title.uppercase(),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                letterSpacing = 1.5.sp,
+                textAlign = TextAlign.Center
+            )
+        }
         HorizontalDivider(
             modifier = Modifier.weight(1f),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
@@ -943,58 +979,104 @@ fun SectionHeading(title: String) {
 
 // ─────────────────────────────────────────────────────────
 // SectionCard  – icon circle + label, white background
-// Matches the reference screenshot design exactly
+// Supports blur and lock overlay when locked
 // ─────────────────────────────────────────────────────────
 @Composable
 fun SectionCard(
     title: String,
     icon: ImageVector,
     iconTint: Color,
+    isLocked: Boolean = false,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .shadow(3.dp, RoundedCornerShape(14.dp))
-            .clickable { onClick() },
+            .shadow(if (isLocked) 1.dp else 3.dp, RoundedCornerShape(14.dp))
+            .clickable {
+                if (isLocked) {
+                    Toast.makeText(context, "This section is currently locked", Toast.LENGTH_SHORT).show()
+                } else {
+                    onClick()
+                }
+            },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isLocked) MaterialTheme.colorScheme.surface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(14.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Circular colored icon background
-            Box(
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Main card content (blurred and faded if locked)
+            Column(
                 modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(iconTint.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .then(
+                        if (isLocked) {
+                            Modifier
+                                .blur(5.dp)
+                                .alpha(0.35f)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = iconTint,
-                    modifier = Modifier.size(28.dp)
+                // Circular colored icon background
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(iconTint.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = iconTint,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = title,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = iconTint,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp,
+                    modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = iconTint,
-                textAlign = TextAlign.Center,
-                lineHeight = 16.sp,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
+
+            // Padlock Overlay for locked cards
+            if (isLocked) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.05f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.92f))
+                            .shadow(3.dp, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Locked",
+                            tint = Color(0xFF424242),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -236,9 +236,61 @@ object UserProgressRepository {
             }
     }
 
+    // ─── Restricted Accounts for Pilot Test ─────────────────────────
+    val RESTRICTED_PILOT_TEST_EMAILS = setOf(
+        "24130021@srcas.ac.in",
+        "24130036@srcas.ac.in",
+        "24130049@srcas.ac.in"
+    )
+
+    val RESTRICTED_PILOT_TEST_ROLL_NOS = setOf(
+        "24130021",
+        "24130036",
+        "24130049"
+    )
+
+    /**
+     * Checks if the current user is restricted to 2 attempts for the Pilot Test,
+     * and returns the number of attempts taken and past scores.
+     */
+    fun checkPilotTestAccess(
+        onResult: (isRestricted: Boolean, attemptsTaken: Int, highestScore: Int, pastScores: List<Int>) -> Unit
+    ) {
+        val uid = currentUid()
+        if (uid == null) {
+            onResult(false, 0, 0, emptyList())
+            return
+        }
+
+        loadUserProfile { profile ->
+            val userEmail = (profile.email.ifBlank { auth.currentUser?.email ?: "" }).lowercase().trim()
+            val userRollNo = profile.rollNo.trim()
+
+            val isRestricted = RESTRICTED_PILOT_TEST_EMAILS.contains(userEmail) ||
+                    RESTRICTED_PILOT_TEST_ROLL_NOS.contains(userRollNo)
+
+            quizResultsCollection(uid).get()
+                .addOnSuccessListener { snapshot ->
+                    val pilotDocs = snapshot.documents.filter { doc ->
+                        val catId = doc.getString("categoryId") ?: ""
+                        val catTitle = doc.getString("categoryTitle") ?: ""
+                        catId == "pilotTest" || catTitle.equals("Pilot Test", ignoreCase = true)
+                    }
+                    val pastScores = pilotDocs.map { (it.getLong("score") ?: 0L).toInt() }
+                    val attemptsTaken = pastScores.size
+                    val highestScore = pastScores.maxOrNull() ?: 0
+
+                    onResult(isRestricted, attemptsTaken, highestScore, pastScores)
+                }
+                .addOnFailureListener {
+                    onResult(isRestricted, 0, 0, emptyList())
+                }
+        }
+    }
+
     // ─── Admin Panel ───────────────────────────────────────────────
 
-    /** Fetches all students in a given department and their quiz results. */
+    /** Fetches all students in a given department and their quiz results (highest score per test). */
     fun getDepartmentStudentReports(
         department: String,
         onResult: (List<StudentReport>) -> Unit
@@ -264,7 +316,7 @@ object UserProgressRepository {
                     
                     val fallbackToUserDoc = {
                         val rawTests = userDoc.get("testResults") as? List<*> ?: emptyList<Any>()
-                        val testResults = rawTests.mapNotNull { item ->
+                        val allResults = rawTests.mapNotNull { item ->
                             val map = item as? Map<*, *> ?: return@mapNotNull null
                             StudentTestResult(
                                 categoryTitle = map["categoryTitle"] as? String ?: "",
@@ -273,6 +325,13 @@ object UserProgressRepository {
                                 timestamp = (map["timestamp"] as? Number)?.toLong() ?: 0L
                             )
                         }
+                        // Retain ONLY the highest scored mark for each category
+                        val testResults = allResults
+                            .groupBy { it.categoryTitle }
+                            .mapValues { (_, results) -> results.maxByOrNull { it.score }!! }
+                            .values
+                            .toList()
+
                         val totalScore = testResults.sumOf { it.score }
                         val totalQuestions = testResults.sumOf { it.total }
 
@@ -298,17 +357,13 @@ object UserProgressRepository {
                                 fallbackToUserDoc()
                                 return@addOnSuccessListener
                             }
-                            var totalScore = 0
-                            var totalQuestions = 0
-                            val testResults = mutableListOf<StudentTestResult>()
+                            val allResults = mutableListOf<StudentTestResult>()
                             quizDocs.forEach { doc ->
                                 val score = (doc.getLong("score") ?: 0L).toInt()
                                 val total = (doc.getLong("total") ?: 0L).toInt()
                                 val catTitle = doc.getString("categoryTitle") ?: ""
                                 val ts = doc.getLong("timestamp") ?: 0L
-                                totalScore += score
-                                totalQuestions += total
-                                testResults.add(
+                                allResults.add(
                                     StudentTestResult(
                                         categoryTitle = catTitle,
                                         score = score,
@@ -317,6 +372,16 @@ object UserProgressRepository {
                                     )
                                 )
                             }
+                            // Retain ONLY the highest scored mark for each category
+                            val testResults = allResults
+                                .groupBy { it.categoryTitle }
+                                .mapValues { (_, results) -> results.maxByOrNull { it.score }!! }
+                                .values
+                                .toList()
+
+                            val totalScore = testResults.sumOf { it.score }
+                            val totalQuestions = testResults.sumOf { it.total }
+
                             reports.add(
                                 StudentReport(
                                     name = name,
