@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import com.example.english_app.data.UserProgressRepository
 import com.example.english_app.data.UserProfile
 
+@androidx.compose.material3.ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -61,7 +62,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val webClientId = "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com"
+        val webClientId = "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com"
 
         // Google Sign-In setup — request idToken so we can sign into Firebase Auth
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -81,7 +82,7 @@ class MainActivity : ComponentActivity() {
                 val accountEmail = account.email ?: ""
 
                 // Domain restriction check
-                if (!accountEmail.lowercase().endsWith(ALLOWED_EMAIL_DOMAIN)) {
+                if (ALLOWED_EMAIL_DOMAIN.isNotEmpty() && !accountEmail.lowercase().endsWith(ALLOWED_EMAIL_DOMAIN)) {
                     // Sign out from Google so user can pick a different account next time
                     googleSignInClient.signOut()
                     Toast.makeText(
@@ -424,7 +425,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         var googleAccountInfoState = mutableStateOf<GoogleSignInAccount?>(null)
-        private const val ALLOWED_EMAIL_DOMAIN = "@srcas.ac.in"
+        private const val ALLOWED_EMAIL_DOMAIN = "" // Temporarily empty for testing, was "@srcas.ac.in"
     }
 }
 

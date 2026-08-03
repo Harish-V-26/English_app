@@ -68,7 +68,7 @@ import com.google.firebase.auth.AuthResult
 import com.example.english_app.R
 import androidx.compose.ui.layout.ContentScale
 
-private const val ALLOWED_DOMAIN = "@srcas.ac.in"
+private const val ALLOWED_DOMAIN = "" // Temporarily empty for testing, was "@srcas.ac.in"
 
 @Composable
 fun LoginScreen(
@@ -108,7 +108,7 @@ fun LoginScreen(
     }
 
     fun isEmailDomainValid(email: String): Boolean {
-        return email.lowercase().endsWith(ALLOWED_DOMAIN)
+        return ALLOWED_DOMAIN.isEmpty() || email.lowercase().endsWith(ALLOWED_DOMAIN)
     }
 
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid(email) && isEmailDomainValid(email) && (!isTeacher || secretKey == "srcas@tec#123")

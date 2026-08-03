@@ -53,7 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import com.example.english_app.R
 import com.example.english_app.data.UserProgressRepository
 
-private const val ALLOWED_DOMAIN = "@srcas.ac.in"
+private const val ALLOWED_DOMAIN = "" // Temporarily empty for testing, was "@srcas.ac.in"
 
 @androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
@@ -115,7 +115,7 @@ fun SignUpScreen(
     }
 
     fun isEmailDomainValid(email: String): Boolean {
-        return email.lowercase().endsWith(ALLOWED_DOMAIN)
+        return ALLOWED_DOMAIN.isEmpty() || email.lowercase().endsWith(ALLOWED_DOMAIN)
     }
 
     val isFormValid = name.isNotBlank() && 

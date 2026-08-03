@@ -651,48 +651,104 @@ fun DepartmentPerformanceGraph(reports: List<StudentReport>) {
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                // Take top 10 students to avoid overcrowding the graph
-                val displayReports = reports.take(10)
-                
-                displayReports.forEach { report ->
-                    val percent = if (report.totalQuestions > 0) (report.totalScore * 100 / report.totalQuestions) else 0
-                    val barHeight = if (percent > 0) (percent / 100f) else 0.05f
-                    val barColor = if (percent >= 70) VibrantGreen else if (percent >= 40) VibrantOrange else VibrantRed
+            var excellent = 0
+            var average = 0
+            var needsImprovement = 0
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "${percent}%",
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.6f)
-                                .fillMaxHeight(barHeight)
-                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                .background(barColor)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = report.name.take(4), // Abbreviate name
-                            fontSize = 10.sp,
-                            maxLines = 1,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+            reports.forEach { report ->
+                val percent = if (report.totalQuestions > 0) (report.totalScore * 100 / report.totalQuestions) else 0
+                if (percent >= 70) excellent++
+                else if (percent >= 40) average++
+                else needsImprovement++
+            }
+
+            val total = reports.size.toFloat()
+            val excellentAngle = if (total > 0) (excellent / total) * 360f else 0f
+            val averageAngle = if (total > 0) (average / total) * 360f else 0f
+            val needsImprovementAngle = if (total > 0) (needsImprovement / total) * 360f else 0f
+
+            Row(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Pie Chart
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                        var startAngle = -90f
+                        if (excellentAngle > 0) {
+                            drawArc(
+                                color = VibrantGreen,
+                                startAngle = startAngle,
+                                sweepAngle = excellentAngle,
+                                useCenter = true,
+                                size = size
+                            )
+                            startAngle += excellentAngle
+                        }
+                        if (averageAngle > 0) {
+                            drawArc(
+                                color = VibrantOrange,
+                                startAngle = startAngle,
+                                sweepAngle = averageAngle,
+                                useCenter = true,
+                                size = size
+                            )
+                            startAngle += averageAngle
+                        }
+                        if (needsImprovementAngle > 0) {
+                            drawArc(
+                                color = VibrantRed,
+                                startAngle = startAngle,
+                                sweepAngle = needsImprovementAngle,
+                                useCenter = true,
+                                size = size
+                            )
+                        }
                     }
+                }
+
+                Spacer(modifier = Modifier.width(24.dp))
+
+                // Legend
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PieChartLegendItem(color = VibrantGreen, text = "Excellent", count = excellent)
+                    PieChartLegendItem(color = VibrantOrange, text = "Average", count = average)
+                    PieChartLegendItem(color = VibrantRed, text = "Poor", count = needsImprovement)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PieChartLegendItem(color: Color, text: String, count: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(12.dp)
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = count.toString(),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
