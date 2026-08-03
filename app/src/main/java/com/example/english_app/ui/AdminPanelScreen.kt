@@ -571,7 +571,7 @@ fun StudentReportRow(report: StudentReport) {
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
-                        text = "Completed Tests:",
+                        text = "Completed Tests (Highest Score):",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
