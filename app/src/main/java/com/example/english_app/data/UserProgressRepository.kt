@@ -339,67 +339,28 @@ object UserProgressRepository {
                     val dept = rawDept.ifBlank { "Computer Science" }
                     
                     val fallbackToUserDoc = {
-                        val rawTests = userDoc.get("testResults") as? List<*> ?: emptyList<Any>()
-                        var allResults = rawTests.mapNotNull { item ->
-                            val map = item as? Map<*, *> ?: return@mapNotNull null
-                            StudentTestResult(
-                                categoryTitle = map["categoryTitle"] as? String ?: "",
-                                score = (map["score"] as? Number)?.toInt() ?: 0,
-                                total = (map["total"] as? Number)?.toInt() ?: 0,
-                                timestamp = (map["timestamp"] as? Number)?.toLong() ?: 0L
-                            )
-                        }
-                        // Retain ONLY the highest scored mark for each category
-                        val testResults = allResults
-                            .groupBy { it.categoryTitle }
-                            .mapValues { (_, results) -> results.maxByOrNull { it.score }!! }
-                            .values
-                            .toList()
-
-                        val totalScore = testResults.sumOf { it.score }
-                        val totalQuestions = testResults.sumOf { it.total }
-
-                        reports.add(
-                            StudentReport(
-                                name = name,
-                                rollNo = rollNo,
-                                department = dept,
-                                totalScore = totalScore,
-                                totalQuestions = totalQuestions,
-                                testResults = testResults
-                            )
-                        )
-                        remaining--
-                        if (remaining <= 0) {
-                            onResult(reports.sortedBy { it.rollNo })
-                        }
-                    }
-
-                    quizResultsCollection(uid).get()
-                        .addOnSuccessListener { quizDocs ->
-                            if (quizDocs.isEmpty) {
-                                fallbackToUserDoc()
-                                return@addOnSuccessListener
-                            }
-                            var totalScore = 0
-                            var totalQuestions = 0
-                            val testResults = mutableListOf<StudentTestResult>()
-                            quizDocs.forEach { doc ->
-                                val score = (doc.getLong("score") ?: 0L).toInt()
-                                val total = (doc.getLong("total") ?: 0L).toInt()
-                                val catTitle = doc.getString("categoryTitle") ?: ""
-                                val ts = doc.getLong("timestamp") ?: 0L
-                                totalScore += score
-                                totalQuestions += total
-                                testResults.add(
-                                    StudentTestResult(
-                                        categoryTitle = catTitle,
-                                        score = score,
-                                        total = total,
-                                        timestamp = ts
-                                    )
+                        try {
+                            val rawTests = userDoc.get("testResults") as? List<*> ?: emptyList<Any>()
+                            val allResults = rawTests.mapNotNull { item ->
+                                val map = item as? Map<*, *> ?: return@mapNotNull null
+                                StudentTestResult(
+                                    categoryTitle = map["categoryTitle"] as? String ?: "",
+                                    score = (map["score"] as? Number)?.toInt() ?: 0,
+                                    total = (map["total"] as? Number)?.toInt() ?: 0,
+                                    timestamp = (map["timestamp"] as? Number)?.toLong() ?: 0L
                                 )
                             }
+                            
+                            // Retain ONLY the highest scored mark for each category
+                            val testResults = allResults
+                                .groupBy { it.categoryTitle }
+                                .mapValues { (_, results) -> results.maxByOrNull { it.score } ?: results.first() }
+                                .values
+                                .toList()
+
+                            val totalScore = testResults.sumOf { it.score }
+                            val totalQuestions = testResults.sumOf { it.total }
+
                             reports.add(
                                 StudentReport(
                                     name = name,
@@ -410,9 +371,65 @@ object UserProgressRepository {
                                     testResults = testResults
                                 )
                             )
+                        } catch (e: Exception) {
+                            android.util.Log.e("AdminPanel", "Error parsing user doc: ${e.message}")
+                        } finally {
                             remaining--
                             if (remaining <= 0) {
                                 onResult(reports.sortedBy { it.rollNo })
+                            }
+                        }
+                    }
+
+                    quizResultsCollection(uid).get()
+                        .addOnSuccessListener { quizDocs ->
+                            try {
+                                if (quizDocs.isEmpty) {
+                                    fallbackToUserDoc()
+                                    return@addOnSuccessListener
+                                }
+                                val allResults = mutableListOf<StudentTestResult>()
+                                quizDocs.forEach { doc ->
+                                    val score = (doc.getLong("score") ?: 0L).toInt()
+                                    val total = (doc.getLong("total") ?: 0L).toInt()
+                                    val catTitle = doc.getString("categoryTitle") ?: ""
+                                    val ts = doc.getLong("timestamp") ?: 0L
+                                    allResults.add(
+                                        StudentTestResult(
+                                            categoryTitle = catTitle,
+                                            score = score,
+                                            total = total,
+                                            timestamp = ts
+                                        )
+                                    )
+                                }
+                                
+                                val testResults = allResults
+                                    .groupBy { it.categoryTitle }
+                                    .mapValues { (_, results) -> results.maxByOrNull { it.score } ?: results.first() }
+                                    .values
+                                    .toList()
+                                
+                                val totalScore = testResults.sumOf { it.score }
+                                val totalQuestions = testResults.sumOf { it.total }
+                                
+                                reports.add(
+                                    StudentReport(
+                                        name = name,
+                                        rollNo = rollNo,
+                                        department = dept,
+                                        totalScore = totalScore,
+                                        totalQuestions = totalQuestions,
+                                        testResults = testResults
+                                    )
+                                )
+                            } catch (e: Exception) {
+                                android.util.Log.e("AdminPanel", "Error parsing quiz docs: ${e.message}")
+                            } finally {
+                                remaining--
+                                if (remaining <= 0) {
+                                    onResult(reports.sortedBy { it.rollNo })
+                                }
                             }
                         }
                         .addOnFailureListener {
