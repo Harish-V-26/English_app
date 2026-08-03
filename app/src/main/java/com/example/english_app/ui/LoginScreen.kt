@@ -111,8 +111,7 @@ fun LoginScreen(
         return ALLOWED_DOMAIN.isEmpty() || email.lowercase().endsWith(ALLOWED_DOMAIN)
     }
 
-    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid(email) && isEmailDomainValid(email) && (!isTeacher || secretKey == "srcas@tec#123")
-
+    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid(email) && isEmailDomainValid(email)
     Box(
         modifier = modifier.fillMaxSize()
     ) {
@@ -473,17 +472,21 @@ fun LoginScreen(
                                 onDone = {
                                     focusManager.clearFocus()
                                     if (isFormValid) {
-                                        loading = true
-                                        error = ""
-                                        auth.signInWithEmailAndPassword(email, password)
-                                            .addOnCompleteListener { task ->
-                                                loading = false
-                                                if (task.isSuccessful) {
-                                                    onLoginClick(email, password, rememberMe)
-                                                } else {
-                                                    error = task.exception?.localizedMessage ?: "Login failed."
+                                        if (isTeacher && secretKey.trim() != "srcas@tec#123") {
+                                            error = "Invalid Teacher Secret Key"
+                                        } else {
+                                            loading = true
+                                            error = ""
+                                            auth.signInWithEmailAndPassword(email, password)
+                                                .addOnCompleteListener { task ->
+                                                    loading = false
+                                                    if (task.isSuccessful) {
+                                                        onLoginClick(email, password, rememberMe)
+                                                    } else {
+                                                        error = task.exception?.localizedMessage ?: "Login failed."
+                                                    }
                                                 }
-                                            }
+                                        }
                                     } else if (email.isNotBlank() && !isEmailDomainValid(email)) {
                                         error = "Only @srcas.ac.in emails are allowed."
                                     } else {
@@ -551,17 +554,21 @@ fun LoginScreen(
                             onClick = {
                                 focusManager.clearFocus()
                                 if (isFormValid) {
-                                    loading = true
-                                    error = ""
-                                    auth.signInWithEmailAndPassword(email, password)
-                                        .addOnCompleteListener { task ->
-                                            loading = false
-                                            if (task.isSuccessful) {
-                                                onLoginClick(email, password, rememberMe)
-                                            } else {
-                                                error = task.exception?.localizedMessage ?: "Login failed."
+                                    if (isTeacher && secretKey.trim() != "srcas@tec#123") {
+                                        error = "Invalid Teacher Secret Key"
+                                    } else {
+                                        loading = true
+                                        error = ""
+                                        auth.signInWithEmailAndPassword(email, password)
+                                            .addOnCompleteListener { task ->
+                                                loading = false
+                                                if (task.isSuccessful) {
+                                                    onLoginClick(email, password, rememberMe)
+                                                } else {
+                                                    error = task.exception?.localizedMessage ?: "Login failed."
+                                                }
                                             }
-                                        }
+                                    }
                                 } else if (email.isNotBlank() && !isEmailDomainValid(email)) {
                                     error = "Only @srcas.ac.in emails are allowed."
                                 } else {
@@ -626,7 +633,7 @@ fun LoginScreen(
                         // Google Sign-In button
                         OutlinedButton(
                             onClick = { 
-                                if (isTeacher && secretKey != "srcas@tec#123") {
+                                if (isTeacher && secretKey.trim() != "srcas@tec#123") {
                                     error = "Invalid Teacher Secret Key"
                                 } else {
                                     onGoogleLogin?.invoke() 

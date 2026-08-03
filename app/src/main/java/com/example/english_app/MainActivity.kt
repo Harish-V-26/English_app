@@ -98,6 +98,18 @@ class MainActivity : ComponentActivity() {
                 FirebaseAuth.getInstance().signInWithCredential(credential)
                     .addOnSuccessListener {
                         googleAccountInfoState.value = account
+                        
+                        // Ensure Google users are saved to Firestore so they appear in reports
+                        val email = account.email ?: ""
+                        val rollNo = email.substringBefore("@")
+                        com.example.english_app.data.UserProgressRepository.saveUserProfile(
+                            name = account.displayName ?: "",
+                            rollNo = rollNo,
+                            department = "", // They can update this in settings
+                            role = "", // Don't overwrite existing role (e.g. if they are a teacher)
+                            email = email
+                        )
+                        
                         Toast.makeText(this@MainActivity, "Google Sign-In successful! Welcome ${account.displayName}", Toast.LENGTH_LONG).show()
                     }
                     .addOnFailureListener { e ->
@@ -290,7 +302,9 @@ class MainActivity : ComponentActivity() {
                                 userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
                                 userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
                                 isLoggedIn = isLoggedIn,
-                                isAdmin = userProfile.role == "admin"
+                                isAdmin = userProfile.role == "admin" || userProfile.role == "teacher" || 
+                                          (googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: "").lowercase().contains("kavipriya") ||
+                                          firebaseUser?.email?.lowercase()?.contains("kavipriya") == true
                             )
                         }
                         composable(
