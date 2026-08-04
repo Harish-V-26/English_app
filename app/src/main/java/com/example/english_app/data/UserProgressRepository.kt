@@ -541,6 +541,7 @@ object UserProgressRepository {
                     val catTitle = map["categoryTitle"] as? String ?: ""
                     if (catTitle.isBlank()) return@mapNotNull null
                     StudentTestResult(
+                        id = map["id"] as? String ?: "",
                         categoryTitle = catTitle,
                         score = (map["score"] as? Number)?.toInt() ?: 0,
                         total = (map["total"] as? Number)?.toInt() ?: 0,
@@ -557,6 +558,7 @@ object UserProgressRepository {
                 
                 rawReports.add(
                     StudentReport(
+                        uid = userDoc.id,
                         name = formatDisplayName(name),
                         rollNo = rollNo,
                         department = dept,
@@ -816,6 +818,9 @@ object UserProgressRepository {
         }
 
         return grouped.values.map { list ->
+            // Find best uid
+            val bestUid = list.map { it.uid }.firstOrNull { it.isNotBlank() } ?: list.first().uid
+
             // Find best human-readable name (not just roll numbers/default student)
             val bestName = list.map { it.name }
                 .firstOrNull { it.isNotBlank() && !it.equals("Student", ignoreCase = true) && !it.equals("Unknown", ignoreCase = true) && !it.all { ch -> ch.isDigit() } }
@@ -843,6 +848,7 @@ object UserProgressRepository {
             val totalQuestions = mergedTests.sumOf { it.total }
 
             StudentReport(
+                uid = bestUid,
                 name = formatDisplayName(bestName),
                 rollNo = bestRollNo,
                 department = bestDept,
@@ -871,27 +877,25 @@ object UserProgressRepository {
             for (u in uids) {
                 db.collection("users").document(u).update("testResults", emptyList<Any>())
                     .addOnCompleteListener {
-                        quizResultsCollection(u).get()
-                            .addOnSuccessListener { qDocs ->
-                                if (qDocs.isEmpty) {
-                                    pending--
-                                    if (pending <= 0) onComplete(overallSuccess)
-                                    return@addOnSuccessListener
-                                }
-                                val batch = db.batch()
-                                qDocs.documents.forEach { qDoc ->
-                                    batch.delete(qDoc.reference)
-                                }
-                                batch.commit().addOnCompleteListener {
-                                    pending--
-                                    if (pending <= 0) onComplete(overallSuccess)
-                                }
+                        quizResultsCollection(u).get().addOnSuccessListener { qDocs ->
+                            if (qDocs.isEmpty) {
+                                pending--
+                                if (pending <= 0) onComplete(overallSuccess)
+                                return@addOnSuccessListener
                             }
-                            .addOnFailureListener {
-                                overallSuccess = false
+                            val batch = db.batch()
+                            qDocs.documents.forEach { qDoc ->
+                                batch.delete(qDoc.reference)
+                            }
+                            batch.commit().addOnCompleteListener {
                                 pending--
                                 if (pending <= 0) onComplete(overallSuccess)
                             }
+                        }.addOnFailureListener {
+                            overallSuccess = false
+                            pending--
+                            if (pending <= 0) onComplete(overallSuccess)
+                        }
                     }
             }
         }

@@ -129,7 +129,12 @@ fun AdminPanelScreen(
     var isLoading by remember { mutableStateOf(false) }
     var expandedDropdown by remember { mutableStateOf(false) }
     
-    var showClearConfirmDialog by remember { mutableStateOf(false) }
+    // Clear history states
+    var studentToClear by remember { mutableStateOf<StudentReport?>(null) }
+    var showClearDeptDialog by remember { mutableStateOf(false) }
+    var testToDelete by remember { mutableStateOf<Pair<StudentReport, StudentTestResult>?>(null) }
+    var isClearing by remember { mutableStateOf(false) }
+    var clearingMessage by remember { mutableStateOf("") }
 
     val availableCategories = remember(reports) {
         reports.flatMap { it.testResults }.map { it.categoryTitle }.distinct().sorted()
@@ -201,49 +206,195 @@ fun AdminPanelScreen(
         }
     }
 
-    if (showClearConfirmDialog) {
+    // Clear Department History Dialog
+    if (showClearDeptDialog) {
         AlertDialog(
-            onDismissRequest = { showClearConfirmDialog = false },
+            onDismissRequest = { showClearDeptDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.DeleteSweep,
+                    contentDescription = null,
+                    tint = Color(0xFFD32F2F),
+                    modifier = Modifier.size(36.dp)
+                )
+            },
             title = {
                 Text(
-                    text = "Clear Past Test History?",
+                    text = "Clear All Test History?",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
                 Text(
-                    text = "This will remove all student quiz and test results recorded during testing. This action cannot be undone.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Are you sure you want to delete ALL test records for the $selectedDepartment department?\n\nThis will permanently clear test history for all students in this department. This action cannot be undone.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
                 )
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        showClearConfirmDialog = false
-                        isLoading = true
-                        UserProgressRepository.clearAllTestResults(selectedDepartment) { success ->
+                        showClearDeptDialog = false
+                        isClearing = true
+                        clearingMessage = "Clearing all test records for $selectedDepartment..."
+                        UserProgressRepository.clearDepartmentTestHistory(selectedDepartment) { success, error ->
+                            isClearing = false
                             if (success) {
-                                Toast.makeText(context, "Test history cleared successfully!", Toast.LENGTH_SHORT).show()
-                                val deptToFetch = selectedDepartment.ifBlank { "All Departments" }
-                                UserProgressRepository.getDepartmentStudentReports(deptToFetch) { result ->
-                                    reports = result
-                                    isLoading = false
-                                }
+                                Toast.makeText(context, "All test history cleared for $selectedDepartment!", Toast.LENGTH_SHORT).show()
+                                reports = reports.map { it.copy(totalScore = 0, totalQuestions = 0, testResults = emptyList()) }
                             } else {
-                                isLoading = false
-                                Toast.makeText(context, "Failed to clear test history.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Failed to clear history: ${error ?: "Unknown error"}", Toast.LENGTH_LONG).show()
                             }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = VibrantRed)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
                 ) {
-                    Text("Clear All Data", color = Color.White)
+                    Text("Clear All History", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showClearConfirmDialog = false }) {
+                OutlinedButton(onClick = { showClearDeptDialog = false }) {
                     Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Clear Single Student History Dialog
+    studentToClear?.let { student ->
+        AlertDialog(
+            onDismissRequest = { studentToClear = null },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = null,
+                    tint = Color(0xFFD32F2F),
+                    modifier = Modifier.size(36.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Clear Student Test History?",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to clear all test history for ${student.name} (${student.rollNo})?\n\nThis will permanently delete all ${student.testResults.size} completed tests. This action cannot be undone.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val target = student
+                        studentToClear = null
+                        isClearing = true
+                        clearingMessage = "Clearing test history for ${target.name}..."
+                        UserProgressRepository.clearStudentTestHistory(target.uid) { success, error ->
+                            isClearing = false
+                            if (success) {
+                                Toast.makeText(context, "Test history cleared for ${target.name}!", Toast.LENGTH_SHORT).show()
+                                reports = reports.map {
+                                    if (it.uid == target.uid || (it.rollNo.isNotBlank() && it.rollNo == target.rollNo)) {
+                                        it.copy(totalScore = 0, totalQuestions = 0, testResults = emptyList())
+                                    } else it
+                                }
+                            } else {
+                                Toast.makeText(context, "Failed: ${error ?: "Unknown error"}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                ) {
+                    Text("Clear History", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { studentToClear = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Delete Single Test Attempt Dialog
+    testToDelete?.let { (student, test) ->
+        AlertDialog(
+            onDismissRequest = { testToDelete = null },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = Color(0xFFD32F2F),
+                    modifier = Modifier.size(36.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Delete Test Attempt?",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    text = "Delete test attempt for \"${test.categoryTitle}\" (Score: ${test.score}/${test.total}) by ${student.name}?",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val (s, t) = testToDelete!!
+                        testToDelete = null
+                        UserProgressRepository.deleteSingleTestResult(s.uid, t.id, t.timestamp) { success, _ ->
+                            if (success) {
+                                Toast.makeText(context, "Test attempt deleted!", Toast.LENGTH_SHORT).show()
+                                reports = reports.map { r ->
+                                    if (r.uid == s.uid || (r.rollNo.isNotBlank() && r.rollNo == s.rollNo)) {
+                                        val remainingTests = r.testResults.filterNot { it.timestamp == t.timestamp }
+                                        r.copy(
+                                            testResults = remainingTests,
+                                            totalScore = remainingTests.sumOf { it.score },
+                                            totalQuestions = remainingTests.sumOf { it.total }
+                                        )
+                                    } else r
+                                }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                ) {
+                    Text("Delete", color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { testToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Loading Dialog when clearing
+    if (isClearing) {
+        AlertDialog(
+            onDismissRequest = {},
+            confirmButton = {},
+            title = null,
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    CircularProgressIndicator(color = VibrantPurple, modifier = Modifier.size(36.dp))
+                    Text(clearingMessage.ifEmpty { "Processing..." }, fontSize = 14.sp)
                 }
             }
         )
@@ -266,7 +417,7 @@ fun AdminPanelScreen(
                 ),
                 actions = {
                     IconButton(onClick = {
-                        showClearConfirmDialog = true
+                        showClearDeptDialog = true
                     }) {
                         Icon(
                             imageVector = Icons.Default.DeleteSweep,
@@ -299,6 +450,17 @@ fun AdminPanelScreen(
                             Icon(
                                 imageVector = Icons.Default.Download,
                                 contentDescription = "Download Report",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                    if (filteredReports.any { it.testResults.isNotEmpty() }) {
+                        IconButton(onClick = {
+                            showClearDeptDialog = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = "Clear Department Test History",
                                 tint = Color.White
                             )
                         }
@@ -554,7 +716,13 @@ fun AdminPanelScreen(
             // Student rows
             if (!isLoading) {
                 items(filteredReports) { report ->
-                    StudentReportRow(report = report)
+                    StudentReportRow(
+                        report = report,
+                        onClearHistory = { studentToClear = it },
+                        onDeleteTest = { student, test ->
+                            testToDelete = Pair(student, test)
+                        }
+                    )
                 }
             }
 
@@ -637,7 +805,9 @@ fun AdminStatCard(
 
 @Composable
 fun StudentReportRow(
-    report: StudentReport
+    report: StudentReport,
+    onClearHistory: (StudentReport) -> Unit = {},
+    onDeleteTest: (StudentReport, StudentTestResult) -> Unit = { _, _ -> }
 ) {
     var expanded by remember { mutableStateOf(false) }
     val percent = if (report.totalQuestions > 0) (report.totalScore * 100 / report.totalQuestions) else 0
@@ -713,13 +883,39 @@ fun StudentReportRow(
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Text(
-                        text = "Completed Tests (Highest Score):",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Completed Tests (${report.testResults.size}):",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        OutlinedButton(
+                            onClick = { onClearHistory(report) },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color(0xFFD32F2F)
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD32F2F).copy(alpha = 0.6f)),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            modifier = Modifier.height(28.dp),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Clear History",
+                                modifier = Modifier.size(14.dp),
+                                tint = Color(0xFFD32F2F)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Clear History", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                     report.testResults.sortedByDescending { it.timestamp }.forEach { test ->
                         val testPercent = if (test.total > 0) (test.score * 100 / test.total) else 0
                         val dateStr = remember(test.timestamp) {
@@ -751,12 +947,28 @@ fun StudentReportRow(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            Text(
-                                text = "${test.score}/${test.total} ($testPercent%)",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "${test.score}/${test.total} ($testPercent%)",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
+                                )
+                                IconButton(
+                                    onClick = { onDeleteTest(report, test) },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete Test",
+                                        tint = Color(0xFFD32F2F).copy(alpha = 0.7f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
