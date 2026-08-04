@@ -96,6 +96,11 @@ class MainActivity : ComponentActivity() {
                 val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(account.idToken, null)
                 FirebaseAuth.getInstance().signInWithCredential(credential)
                     .addOnSuccessListener {
+                        getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+                            .edit()
+                            .putBoolean(KEY_REMEMBER_ME, true)
+                            .putString(KEY_SAVED_EMAIL, accountEmail)
+                            .apply()
                         googleAccountInfoState.value = account
                         Toast.makeText(this@MainActivity, "Google Sign-In successful! Welcome ${account.displayName}", Toast.LENGTH_LONG).show()
                     }
@@ -106,6 +111,19 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this@MainActivity, "Google Sign-In failed: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
+
+        val authPrefs = getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+        val isRemembered = authPrefs.getBoolean(KEY_REMEMBER_ME, false)
+        val initialAuth = FirebaseAuth.getInstance()
+        val initialUser = initialAuth.currentUser
+
+        // If not remembered or anonymous, sign out on app startup
+        if (!isRemembered || initialUser == null || initialUser.isAnonymous) {
+            if (initialUser != null && !isRemembered) {
+                initialAuth.signOut()
+            }
+        }
+        val startDestination = if (isRemembered && initialUser != null && !initialUser.isAnonymous) "home" else "login"
 
         setContent {
             var darkTheme by remember { mutableStateOf(false) }
@@ -139,7 +157,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 
-                val isLoggedIn = googleAccountInfo != null || firebaseUser != null
+                val isLoggedIn = googleAccountInfo != null || (firebaseUser != null && !firebaseUser!!.isAnonymous)
 
                 // Load user profile when logged in
                 LaunchedEffect(isLoggedIn) {
@@ -160,13 +178,27 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                val handleLogout: () -> Unit = {
+                    getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+                        .edit()
+                        .putBoolean(KEY_REMEMBER_ME, false)
+                        .apply()
+                    FirebaseAuth.getInstance().signOut()
+                    googleSignInClient.signOut()
+                    googleAccountInfoState.value = null
+                    userProfile = UserProfile()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = Color.Transparent
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "login",
+                        startDestination = startDestination,
                         modifier = Modifier
                     ) {
                         composable(
@@ -177,7 +209,15 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) {
                             LoginScreen(
-                                onLoginClick = { _, _, _ ->
+                                onLoginClick = { userEmail, _, rememberMe ->
+                                    val editor = getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE).edit()
+                                    editor.putBoolean(KEY_REMEMBER_ME, rememberMe)
+                                    if (rememberMe) {
+                                        editor.putString(KEY_SAVED_EMAIL, userEmail)
+                                    } else {
+                                        editor.remove(KEY_SAVED_EMAIL)
+                                    }
+                                    editor.apply()
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -209,7 +249,12 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) {
                             SignUpScreen(
-                                onSignUpClick = { _, _, _, _ ->
+                                onSignUpClick = { _, userEmail, _, _ ->
+                                    getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+                                        .edit()
+                                        .putBoolean(KEY_REMEMBER_ME, true)
+                                        .putString(KEY_SAVED_EMAIL, userEmail)
+                                        .apply()
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -244,11 +289,7 @@ class MainActivity : ComponentActivity() {
                             CarouselScreen(
                                 category = categories[categoryIndex],
                                 onBack = { navController.popBackStack() },
-                                onLogout = {
-                                    navController.navigate("login") {
-                                        popUpTo("login") { inclusive = true }
-                                    }
-                                },
+                                onLogout = handleLogout,
                                 animationSettings = animationSettings,
                                 onStartQuiz = { categoryId ->
                                     navController.navigate("quiz/$categoryId")
@@ -273,15 +314,7 @@ class MainActivity : ComponentActivity() {
                                 onHome = { navController.navigate("home") },
                                 onLogin = { navController.navigate("login") },
                                 onQuiz = { navController.navigate("quizHub") },
-                                onLogout = {
-                                    FirebaseAuth.getInstance().signOut()
-                                    googleSignInClient.signOut()
-                                    googleAccountInfoState.value = null
-                                    userProfile = UserProfile()
-                                    navController.navigate("login") {
-                                        popUpTo("home") { inclusive = true }
-                                    }
-                                },
+                                onLogout = handleLogout,
                                 onAdminPanel = { navController.navigate("adminPanel") },
                                 darkTheme = darkTheme,
                                 onToggleTheme = { darkTheme = !darkTheme },
@@ -305,13 +338,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToHome = {
                                     navController.navigate("home")
                                 },
-                                onLogout = {
-                                    FirebaseAuth.getInstance().signOut()
-                                    googleSignInClient.signOut()
-                                    navController.navigate("login") {
-                                        popUpTo("login") { inclusive = true }
-                                    }
-                                },
+                                onLogout = handleLogout,
                                 onBack = { navController.popBackStack() },
                                 onSettings = { navController.navigate("settings") },
                                 onContact = { navController.navigate("contact") }
@@ -335,15 +362,7 @@ class MainActivity : ComponentActivity() {
                                 userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
                                 userEmail = googleAccountInfo?.email ?: firebaseUser?.email ?: "",
                                 userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
-                                onSignOut = {
-                                    FirebaseAuth.getInstance().signOut()
-                                    googleSignInClient.signOut()
-                                    googleAccountInfoState.value = null
-                                    userProfile = UserProfile()
-                                    navController.navigate("login") {
-                                        popUpTo("home") { inclusive = true }
-                                    }
-                                },
+                                onSignOut = handleLogout,
                                 fontSizeScale = fontSizeScale,
                                 onFontSizeChange = { newScale ->
                                     fontSizeScale = newScale
@@ -425,6 +444,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         var googleAccountInfoState = mutableStateOf<GoogleSignInAccount?>(null)
         private const val ALLOWED_EMAIL_DOMAIN = "@srcas.ac.in"
+        const val AUTH_PREFS = "auth_prefs"
+        const val KEY_REMEMBER_ME = "remember_me"
+        const val KEY_SAVED_EMAIL = "saved_email"
     }
 }
 

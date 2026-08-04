@@ -204,9 +204,9 @@ fun DashboardScreen(
 
 @Composable
 fun TodaysChallenge(floatingOffset: Float, stats: DashboardStats) {
-    val wordsGoal = 5
-    val wordsLearned = stats.wordsRated.coerceAtMost(wordsGoal)
-    val progress = if (wordsGoal > 0) wordsLearned.toFloat() / wordsGoal else 0f
+    val quizGoal = 2
+    val quizzesCompleted = stats.quizzesTaken.coerceAtMost(quizGoal)
+    val progress = if (quizGoal > 0) quizzesCompleted.toFloat() / quizGoal else 0f
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,7 +235,7 @@ fun TodaysChallenge(floatingOffset: Float, stats: DashboardStats) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Rate $wordsGoal words today!",
+                text = "Complete $quizGoal quiz${if (quizGoal > 1) "zes" else ""} today!",
                 fontSize = 14.sp,
                 color = Color(0xFFE65100)
             )
@@ -248,7 +248,7 @@ fun TodaysChallenge(floatingOffset: Float, stats: DashboardStats) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "$wordsLearned/$wordsGoal completed",
+                text = "$quizzesCompleted/$quizGoal completed",
                 fontSize = 12.sp,
                 color = Color(0xFFE65100),
                 textAlign = TextAlign.End,
@@ -263,7 +263,7 @@ fun AchievementBadges(stats: DashboardStats) {
     val hasFirstQuiz = stats.quizzesTaken >= 1
     val hasPerfectScore = stats.quizAccuracy >= 1.0f
     val hasFavorites = stats.favoriteCount >= 1
-    val hasRated = stats.wordsRated >= 10
+    val hasQuizzes = stats.quizzesTaken >= 3
     Column {
         Text(
             text = "🏆 Achievements",
@@ -273,37 +273,40 @@ fun AchievementBadges(stats: DashboardStats) {
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AchievementBadge("First Quiz", "🌟", hasFirstQuiz)
-            AchievementBadge("Favorited", "❤️", hasFavorites)
-            AchievementBadge("10 Words Rated", "👑", hasRated)
-            AchievementBadge("Perfect Score", "💯", hasPerfectScore)
+            AchievementBadge("First Quiz", "🌟", hasFirstQuiz, modifier = Modifier.weight(1f))
+            AchievementBadge("Favorited", "❤️", hasFavorites, modifier = Modifier.weight(1f))
+            AchievementBadge("3 Quizzes", "👑", hasQuizzes, modifier = Modifier.weight(1f))
+            AchievementBadge("Perfect Score", "💯", hasPerfectScore, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-fun AchievementBadge(title: String, emoji: String, unlocked: Boolean) {
+fun AchievementBadge(title: String, emoji: String, unlocked: Boolean, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .size(80.dp)
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+            .height(80.dp)
             .background(
-                color = if (unlocked) VibrantGreen else Color.Gray.copy(alpha = 0.3f),
+                color = if (unlocked) VibrantGreen else Color.Gray.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(12.dp)
             )
-            .padding(8.dp)
+            .padding(4.dp)
     ) {
         Text(
             text = emoji,
-            fontSize = 24.sp
+            fontSize = 22.sp
         )
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = title,
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
-            color = if (unlocked) Color.White else Color.Gray
+            lineHeight = 12.sp,
+            color = if (unlocked) Color.White else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
     }
 }
@@ -337,13 +340,6 @@ fun RecentQuizActivity(stats: DashboardStats) {
                     title = "Favorited ${stats.favoriteCount} word(s)",
                     subtitle = "Your personal word list is growing!",
                     icon = "⭐"
-                )
-            }
-            if (stats.wordsRated > 0) {
-                ActivityItem(
-                    title = "Rated ${stats.wordsRated} word(s)",
-                    subtitle = "Difficulty ratings help you focus!",
-                    icon = "🏷️"
                 )
             }
         }
@@ -448,7 +444,6 @@ fun UserProfileSection(userName: String, userEmail: String, userPhotoUrl: String
 @Composable
 fun ProgressStats(stats: DashboardStats) {
     val totalWordsInApp = categories.sumOf { it.words.size }
-    val ratedProgress = if (totalWordsInApp > 0) stats.wordsRated.toFloat() / totalWordsInApp else 0f
     val quizProgress = stats.quizAccuracy.coerceIn(0f, 1f)
     val favoriteProgress = if (totalWordsInApp > 0) stats.favoriteCount.toFloat() / totalWordsInApp else 0f
 
@@ -471,7 +466,6 @@ fun ProgressStats(stats: DashboardStats) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ProgressPieChart(progress = ratedProgress, color = VibrantBlue, label = "Words Rated")
                 ProgressPieChart(progress = quizProgress, color = VibrantGreen, label = "Quiz Accuracy")
                 ProgressPieChart(progress = favoriteProgress, color = VibrantOrange, label = "Favorites")
             }
@@ -480,7 +474,6 @@ fun ProgressStats(stats: DashboardStats) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ProgressStat("Rated", "${stats.wordsRated}", "$totalWordsInApp", ratedProgress, VibrantBlue)
                 ProgressStat("Quizzes", "${stats.quizzesTaken}", "taken", quizProgress, VibrantGreen)
                 ProgressStat("Favorites", "${stats.favoriteCount}", "$totalWordsInApp", favoriteProgress, VibrantOrange)
             }
@@ -499,7 +492,7 @@ fun ProgressStat(title: String, current: String, total: String, progress: Float,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "$current/$total",
+            text = if (total == "taken") "$current Taken" else "$current/$total",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -508,7 +501,7 @@ fun ProgressStat(title: String, current: String, total: String, progress: Float,
         LinearProgressIndicator(
             progress = { progress },
             modifier = Modifier
-                .width(60.dp)
+                .width(80.dp)
                 .height(4.dp),
             color = color,
             trackColor = color.copy(alpha = 0.3f)
