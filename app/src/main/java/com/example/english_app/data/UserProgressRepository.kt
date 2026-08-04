@@ -871,26 +871,27 @@ object UserProgressRepository {
             for (u in uids) {
                 db.collection("users").document(u).update("testResults", emptyList<Any>())
                     .addOnCompleteListener {
-                        quizResultsCollection(u).get().addOnSuccessListener { qDocs ->
-                            if (qDocs.isEmpty) {
+                        quizResultsCollection(u).get()
+                            .addOnSuccessListener { qDocs ->
+                                if (qDocs.isEmpty) {
+                                    pending--
+                                    if (pending <= 0) onComplete(overallSuccess)
+                                    return@addOnSuccessListener
+                                }
+                                val batch = db.batch()
+                                qDocs.documents.forEach { qDoc ->
+                                    batch.delete(qDoc.reference)
+                                }
+                                batch.commit().addOnCompleteListener {
+                                    pending--
+                                    if (pending <= 0) onComplete(overallSuccess)
+                                }
+                            }
+                            .addOnFailureListener {
+                                overallSuccess = false
                                 pending--
                                 if (pending <= 0) onComplete(overallSuccess)
-                                return@addOnSuccessListener
                             }
-                            val batch = db.batch()
-                            qDocs.documents.forEach { qDoc ->
-                                batch.delete(qDoc.reference)
-                            }
-                            batch.commit().addOnCompleteListener {
-                                pending--
-                                if (pending <= 0) onComplete(overallSuccess)
-                            }
-                            }
-                        }.addOnFailureListener {
-                            overallSuccess = false
-                            pending--
-                            if (pending <= 0) onComplete(overallSuccess)
-                        }
                     }
             }
         }

@@ -303,17 +303,6 @@ fun AdminPanelScreen(
                             )
                         }
                     }
-                    if (filteredReports.any { it.testResults.isNotEmpty() }) {
-                        IconButton(onClick = {
-                            showClearDeptDialog = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.DeleteSweep,
-                                contentDescription = "Clear Department Test History",
-                                tint = Color.White
-                            )
-                        }
-                    }
                 }
             )
         }
@@ -762,28 +751,12 @@ fun StudentReportRow(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = "${test.score}/${test.total} ($testPercent%)",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
-                                )
-                                IconButton(
-                                    onClick = { onDeleteTest(report, test) },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Delete Test",
-                                        tint = Color(0xFFD32F2F).copy(alpha = 0.7f),
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
+                            Text(
+                                text = "${test.score}/${test.total} ($testPercent%)",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
+                            )
                         }
                     }
                 }
