@@ -227,7 +227,7 @@ fun LoginScreen(
                 
                 // App Logo
                 Image(
-                    painter = painterResource(id = R.drawable.wordwhiz_logo),
+                    painter = painterResource(id = R.drawable.app_logo),
                     contentDescription = "App Logo",
                     modifier = Modifier
                         .size(90.dp)

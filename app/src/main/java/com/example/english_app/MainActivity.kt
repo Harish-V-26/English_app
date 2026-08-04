@@ -49,6 +49,7 @@ import com.example.english_app.ui.QuizScreen
 import com.example.english_app.ui.PilotTestScreen
 import com.example.english_app.ui.AdminPanelScreen
 import com.google.firebase.auth.FirebaseAuth
+import com.example.english_app.ui.SplashScreen
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.mutableFloatStateOf
 import com.example.english_app.data.UserProgressRepository
@@ -188,9 +189,26 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "login",
+                        startDestination = "splash",
                         modifier = Modifier
                     ) {
+                        composable(
+                            route = "splash"
+                        ) {
+                            SplashScreen(
+                                onSplashFinished = {
+                                    if (isLoggedIn) {
+                                        navController.navigate("home") {
+                                            popUpTo("splash") { inclusive = true }
+                                        }
+                                    } else {
+                                        navController.navigate("login") {
+                                            popUpTo("splash") { inclusive = true }
+                                        }
+                                    }
+                                }
+                            )
+                        }
                         composable(
                             route = "login",
                             enterTransition = { slideInHorizontally { it } },
