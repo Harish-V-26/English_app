@@ -53,7 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import com.example.english_app.R
 import com.example.english_app.data.UserProgressRepository
 
-private const val ALLOWED_DOMAIN = "" // Temporarily empty for testing, was "@srcas.ac.in"
+private const val ALLOWED_DOMAIN = "@srcas.ac.in"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,8 +122,7 @@ fun SignUpScreen(
                      email.isNotBlank() && 
                      password.isNotBlank() && 
                      confirmPassword.isNotBlank() && 
-                     (isTeacher || rollNo.isNotBlank()) &&
-                     department.isNotBlank() &&
+                     (isTeacher || (rollNo.isNotBlank() && department.isNotBlank())) &&
                      isEmailValid(email) && 
                      isEmailDomainValid(email) &&
                      password == confirmPassword && 
@@ -435,70 +434,69 @@ fun SignUpScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
-                    // Department field — fixed dropdown so every student's department
-                    // is stored with the exact same spelling/casing (e.g. always
-                    // "Computer Science"), which is required for the Admin Panel's
-                    // department filter to group students correctly.
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = department,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Department") },
-                            placeholder = { Text("Select your department") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.School,
-                                    contentDescription = "Department",
-                                    tint = VibrantBlue
+                    if (!isTeacher) {
+                        // Department field — fixed dropdown for students
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = department,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Department") },
+                                placeholder = { Text("Select your department") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.School,
+                                        contentDescription = "Department",
+                                        tint = VibrantBlue
+                                    )
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = if (departmentDropdownExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                        contentDescription = "Dropdown",
+                                        tint = VibrantBlue
+                                    )
+                                },
+                                singleLine = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .semantics { contentDescription = "departmentField" },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = VibrantBlue,
+                                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                                    focusedLabelColor = VibrantBlue,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                                    cursorColor = MaterialTheme.colorScheme.primary,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                                 )
-                            },
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = if (departmentDropdownExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                                    contentDescription = "Dropdown",
-                                    tint = VibrantBlue
-                                )
-                            },
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .semantics { contentDescription = "departmentField" },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = VibrantBlue,
-                                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                                focusedLabelColor = VibrantBlue,
-                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
-                                cursorColor = MaterialTheme.colorScheme.primary,
-                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                             )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clickable { departmentDropdownExpanded = !departmentDropdownExpanded }
-                        )
-                        DropdownMenu(
-                            expanded = departmentDropdownExpanded,
-                            onDismissRequest = { departmentDropdownExpanded = false },
-                            modifier = Modifier.fillMaxWidth(0.85f)
-                        ) {
-                            departmentOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, fontSize = 15.sp) },
-                                    onClick = {
-                                        department = option
-                                        departmentDropdownExpanded = false
-                                        if (error.isNotEmpty()) error = ""
-                                    }
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { departmentDropdownExpanded = !departmentDropdownExpanded }
+                            )
+                            DropdownMenu(
+                                expanded = departmentDropdownExpanded,
+                                onDismissRequest = { departmentDropdownExpanded = false },
+                                modifier = Modifier.fillMaxWidth(0.85f)
+                            ) {
+                                departmentOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, fontSize = 15.sp) },
+                                        onClick = {
+                                            department = option
+                                            departmentDropdownExpanded = false
+                                            if (error.isNotEmpty()) error = ""
+                                        }
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    // Space between Department and Email fields
-                    Spacer(modifier = Modifier.height(16.dp))
+                        // Space between Department and Email fields
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                     
                     // Email field
                     OutlinedTextField(
@@ -691,15 +689,22 @@ fun SignUpScreen(
                                     .addOnCompleteListener { task ->
                                         loading = false
                                         if (task.isSuccessful) {
+                                            val formattedName = UserProgressRepository.formatDisplayName(name)
+                                            val firebaseUser = task.result?.user
+                                            val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                                                .setDisplayName(formattedName)
+                                                .build()
+                                            firebaseUser?.updateProfile(profileUpdates)
+
                                             // Save profile data to Firestore
                                             UserProgressRepository.saveUserProfile(
-                                                name = name,
-                                                rollNo = rollNo,
-                                                department = department,
+                                                name = formattedName,
+                                                rollNo = if (isTeacher) "" else rollNo,
+                                                department = if (isTeacher) "Faculty" else department,
                                                 role = if (isTeacher) "teacher" else "student",
                                                 email = email
                                             )
-                                            onSignUpClick(name, email, password, agreeToTerms)
+                                            onSignUpClick(formattedName, email, password, agreeToTerms)
                                         } else {
                                             error = task.exception?.localizedMessage ?: "Sign up failed."
                                         }

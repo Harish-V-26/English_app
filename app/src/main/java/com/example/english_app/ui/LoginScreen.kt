@@ -68,7 +68,7 @@ import com.google.firebase.auth.AuthResult
 import com.example.english_app.R
 import androidx.compose.ui.layout.ContentScale
 
-private const val ALLOWED_DOMAIN = "" // Temporarily empty for testing, was "@srcas.ac.in"
+private const val ALLOWED_DOMAIN = "@srcas.ac.in"
 
 @Composable
 fun LoginScreen(

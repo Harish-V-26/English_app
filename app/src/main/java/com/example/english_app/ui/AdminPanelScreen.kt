@@ -33,18 +33,87 @@ import android.widget.Toast
 private fun exportCsv(context: Context, uri: android.net.Uri, reports: List<StudentReport>, department: String) {
     try {
         context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-            java.io.OutputStreamWriter(outputStream).use { writer ->
-                writer.write("Department:,${department}\n\n")
-                writer.write("Roll No,Name,Tests Taken,Total Score,Total Questions,Accuracy (%)\n")
-                for (report in reports) {
-                    val percent = if (report.totalQuestions > 0) (report.totalScore * 100 / report.totalQuestions) else 0
-                    writer.write("${report.rollNo},${report.name},${report.testResults.size},${report.totalScore},${report.totalQuestions},${percent}%\n")
+            java.io.OutputStreamWriter(outputStream, java.nio.charset.StandardCharsets.UTF_8).use { writer ->
+                // Write UTF-8 Byte Order Mark (BOM) so Excel reads formatting and special characters perfectly
+                writer.write("\uFEFF")
+
+                val sdf = java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault())
+                val nowFormatted = sdf.format(java.util.Date())
+                val deptTitle = department.ifBlank { "All Departments" }
+
+                val sortedReports = reports.sortedWith(compareBy({ it.name.lowercase() }, { it.rollNo }))
+                val totalStudents = sortedReports.size
+                val evaluatedStudents = sortedReports.count { it.totalQuestions > 0 }
+                val totalTests = sortedReports.sumOf { it.testResults.size }
+                val avgAccuracy = if (sortedReports.any { it.totalQuestions > 0 }) {
+                    val totalScore = sortedReports.sumOf { it.totalScore }
+                    val totalQ = sortedReports.sumOf { it.totalQuestions }
+                    if (totalQ > 0) (totalScore * 100 / totalQ) else 0
+                } else 0
+
+                // Header Block with professional spacing
+                writer.write("STUDENT TEST PERFORMANCE REPORT\n")
+                writer.write("Department:,${deptTitle}\n")
+                writer.write("Report Generated On:,${nowFormatted}\n")
+                writer.write("Total Students:,${totalStudents}\n")
+                writer.write("Department Average Score:,${avgAccuracy}%\n\n")
+
+                // Table Headers
+                writer.write("S.No,Roll Number,Student Name,Department,Test Name,Highest Score,Total Questions,Accuracy (%),Date of Attempt\n")
+
+                var sNo = 1
+                for (report in sortedReports) {
+                    // Take strictly the highest score attempt per test category
+                    val bestTests = report.testResults
+                        .groupBy { it.categoryTitle }
+                        .mapValues { (_, list) -> list.maxByOrNull { it.score } ?: list.first() }
+                        .values
+                        .toList()
+
+                    val highestScore = bestTests.sumOf { it.score }
+                    val totalQuestions = bestTests.sumOf { it.total }
+                    val percent = if (totalQuestions > 0) (highestScore * 100 / totalQuestions) else 0
+
+                    val testName = if (bestTests.isNotEmpty()) {
+                        bestTests.joinToString(" | ") { it.categoryTitle }
+                    } else {
+                        "Not Attempted"
+                    }
+
+                    val testTakenOn = if (bestTests.isNotEmpty()) {
+                        bestTests.sortedByDescending { it.timestamp }.map { test ->
+                            if (test.timestamp > 0L) {
+                                sdf.format(java.util.Date(test.timestamp))
+                            } else {
+                                "Completed"
+                            }
+                        }.distinct().joinToString(" | ")
+                    } else {
+                        "N/A"
+                    }
+
+                    // Format roll number with ="..." formula syntax so Excel NEVER converts to scientific notation (e.g. 2.4E+07)
+                    val rollNoFormula = "\"=\"\"${report.rollNo.replace("\"", "\"\"")}\"\"\""
+                    val nameSafe = "\"${report.name.replace("\"", "\"\"")}\""
+                    val deptSafe = "\"${report.department.replace("\"", "\"\"")}\""
+                    val testNameSafe = "\"${testName.replace("\"", "\"\"")}\""
+                    val testTakenOnSafe = "\"${testTakenOn.replace("\"", "\"\"")}\""
+
+                    writer.write("${sNo},${rollNoFormula},${nameSafe},${deptSafe},${testNameSafe},${highestScore},${totalQuestions},${percent}%,${testTakenOnSafe}\n")
+                    sNo++
                 }
+
+                // Summary footer with line spacing
+                writer.write("\n\n")
+                writer.write("SUMMARY OVERVIEW\n")
+                writer.write("Total Evaluated Students:,${evaluatedStudents}\n")
+                writer.write("Total Tests Completed:,${totalTests}\n")
+                writer.write("Overall Department Accuracy:,${avgAccuracy}%\n")
             }
         }
-        Toast.makeText(context, "Report downloaded successfully!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Report exported successfully!", Toast.LENGTH_SHORT).show()
     } catch (e: Exception) {
-        Toast.makeText(context, "Failed to download report: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Failed to export report: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -73,7 +142,7 @@ fun AdminPanelScreen(
     }
 
     val filteredReports = remember(reports, selectedCategory) {
-        if (selectedCategory == "All Categories") {
+        val base = if (selectedCategory == "All Categories") {
             reports
         } else {
             reports.map { report ->
@@ -87,6 +156,7 @@ fun AdminPanelScreen(
                 )
             }
         }
+        base.sortedWith(compareBy({ it.name.lowercase() }, { it.rollNo }))
     }
 
     val context = LocalContext.current
@@ -94,23 +164,89 @@ fun AdminPanelScreen(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
         if (uri != null) {
-            exportCsv(context, uri, reports, selectedDepartment)
+            exportCsv(context, uri, filteredReports, selectedDepartment)
         }
     }
 
-    // Load all departments
+    // Load all departments on initial composition
     LaunchedEffect(Unit) {
         UserProgressRepository.loadAllDepartments { depts ->
             departments = depts
-            // Auto-select teacher's department if available
-            if (selectedDepartment.isNotBlank() && selectedDepartment in depts) {
-                isLoading = true
-                UserProgressRepository.getDepartmentStudentReports(selectedDepartment) { result ->
-                    reports = result
-                    isLoading = false
+            if (selectedDepartment.isBlank()) {
+                val normTeacherDept = UserProgressRepository.formatDepartmentName(teacherDepartment)
+                val defaultDept = if (normTeacherDept.isNotBlank() && depts.any { it.equals(normTeacherDept, ignoreCase = true) }) {
+                    depts.first { it.equals(normTeacherDept, ignoreCase = true) }
+                } else if (depts.isNotEmpty()) {
+                    depts.first()
+                } else {
+                    "All Departments"
                 }
+                selectedDepartment = defaultDept
             }
         }
+    }
+
+    // Real-time live listener for student reports (updates instantly as tests are submitted)
+    DisposableEffect(selectedDepartment) {
+        val deptToFetch = selectedDepartment.ifBlank { "All Departments" }
+        isLoading = true
+        val registration = UserProgressRepository.observeDepartmentStudentReports(deptToFetch) { result ->
+            reports = result
+            isLoading = false
+        }
+        onDispose {
+            registration.remove()
+        }
+    }
+
+    var showClearConfirmDialog by remember { mutableStateOf(false) }
+
+    if (showClearConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirmDialog = false },
+            title = {
+                Text(
+                    text = "Clear Past Test History?",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    text = "This will remove all student quiz and test results recorded during testing. This action cannot be undone.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showClearConfirmDialog = false
+                        isLoading = true
+                        UserProgressRepository.clearAllTestResults(selectedDepartment) { success ->
+                            if (success) {
+                                Toast.makeText(context, "Test history cleared successfully!", Toast.LENGTH_SHORT).show()
+                                val deptToFetch = selectedDepartment.ifBlank { "All Departments" }
+                                UserProgressRepository.getDepartmentStudentReports(deptToFetch) { result ->
+                                    reports = result
+                                    isLoading = false
+                                }
+                            } else {
+                                isLoading = false
+                                Toast.makeText(context, "Failed to clear test history.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = VibrantRed)
+                ) {
+                    Text("Clear All Data", color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showClearConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -131,12 +267,23 @@ fun AdminPanelScreen(
                 ),
                 actions = {
                     IconButton(onClick = {
-                        if (selectedDepartment.isNotBlank()) {
-                            isLoading = true
-                            UserProgressRepository.getDepartmentStudentReports(selectedDepartment) { result ->
-                                reports = result
-                                isLoading = false
-                            }
+                        showClearConfirmDialog = true
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteSweep,
+                            contentDescription = "Clear Test History",
+                            tint = Color.White
+                        )
+                    }
+                    IconButton(onClick = {
+                        UserProgressRepository.loadAllDepartments { depts ->
+                            departments = depts
+                        }
+                        val deptToFetch = selectedDepartment.ifBlank { "All Departments" }
+                        isLoading = true
+                        UserProgressRepository.getDepartmentStudentReports(deptToFetch) { result ->
+                            reports = result
+                            isLoading = false
                         }
                     }) {
                         Icon(
@@ -252,11 +399,6 @@ fun AdminPanelScreen(
                                 onClick = {
                                     selectedDepartment = dept
                                     expandedDropdown = false
-                                    isLoading = true
-                                    UserProgressRepository.getDepartmentStudentReports(dept) { result ->
-                                        reports = result
-                                        isLoading = false
-                                    }
                                 }
                             )
                         }
@@ -634,78 +776,104 @@ fun DepartmentPerformanceGraph(reports: List<StudentReport>) {
     if (reports.isEmpty()) return
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Accuracy Overview",
+                text = "Score & Accuracy Distribution",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            var excellent = 0
-            var average = 0
-            var needsImprovement = 0
+            var below40 = 0
+            var between40and60 = 0
+            var between60and80 = 0
+            var between80and90 = 0
+            var above90 = 0
 
             reports.forEach { report ->
                 val percent = if (report.totalQuestions > 0) (report.totalScore * 100 / report.totalQuestions) else 0
-                if (percent >= 70) excellent++
-                else if (percent >= 40) average++
-                else needsImprovement++
+                when {
+                    percent < 40 -> below40++
+                    percent < 60 -> between40and60++
+                    percent < 80 -> between60and80++
+                    percent < 90 -> between80and90++
+                    else -> above90++
+                }
             }
 
             val total = reports.size.toFloat()
-            val excellentAngle = if (total > 0) (excellent / total) * 360f else 0f
-            val averageAngle = if (total > 0) (average / total) * 360f else 0f
-            val needsImprovementAngle = if (total > 0) (needsImprovement / total) * 360f else 0f
+            val below40Angle = if (total > 0) (below40 / total) * 360f else 0f
+            val between40and60Angle = if (total > 0) (between40and60 / total) * 360f else 0f
+            val between60and80Angle = if (total > 0) (between60and80 / total) * 360f else 0f
+            val between80and90Angle = if (total > 0) (between80and90 / total) * 360f else 0f
+            val above90Angle = if (total > 0) (above90 / total) * 360f else 0f
 
             Row(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Pie Chart
                 Box(
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(130.dp)
                         .padding(8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
                         var startAngle = -90f
-                        if (excellentAngle > 0) {
+                        if (above90Angle > 0) {
                             drawArc(
-                                color = VibrantGreen,
+                                color = Color(0xFF7B1FA2), // Purple - 90%+
                                 startAngle = startAngle,
-                                sweepAngle = excellentAngle,
+                                sweepAngle = above90Angle,
                                 useCenter = true,
                                 size = size
                             )
-                            startAngle += excellentAngle
+                            startAngle += above90Angle
                         }
-                        if (averageAngle > 0) {
+                        if (between80and90Angle > 0) {
                             drawArc(
-                                color = VibrantOrange,
+                                color = Color(0xFF43A047), // Green - 80% to 89%
                                 startAngle = startAngle,
-                                sweepAngle = averageAngle,
+                                sweepAngle = between80and90Angle,
                                 useCenter = true,
                                 size = size
                             )
-                            startAngle += averageAngle
+                            startAngle += between80and90Angle
                         }
-                        if (needsImprovementAngle > 0) {
+                        if (between60and80Angle > 0) {
                             drawArc(
-                                color = VibrantRed,
+                                color = Color(0xFF1E88E5), // Blue - 60% to 79%
                                 startAngle = startAngle,
-                                sweepAngle = needsImprovementAngle,
+                                sweepAngle = between60and80Angle,
+                                useCenter = true,
+                                size = size
+                            )
+                            startAngle += between60and80Angle
+                        }
+                        if (between40and60Angle > 0) {
+                            drawArc(
+                                color = Color(0xFFFB8C00), // Orange - 40% to 59%
+                                startAngle = startAngle,
+                                sweepAngle = between40and60Angle,
+                                useCenter = true,
+                                size = size
+                            )
+                            startAngle += between40and60Angle
+                        }
+                        if (below40Angle > 0) {
+                            drawArc(
+                                color = Color(0xFFE53935), // Red - Below 40%
+                                startAngle = startAngle,
+                                sweepAngle = below40Angle,
                                 useCenter = true,
                                 size = size
                             )
@@ -713,16 +881,18 @@ fun DepartmentPerformanceGraph(reports: List<StudentReport>) {
                     }
                 }
 
-                Spacer(modifier = Modifier.width(24.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
                 // Legend
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    PieChartLegendItem(color = VibrantGreen, text = "Excellent", count = excellent)
-                    PieChartLegendItem(color = VibrantOrange, text = "Average", count = average)
-                    PieChartLegendItem(color = VibrantRed, text = "Poor", count = needsImprovement)
+                    PieChartLegendItem(color = Color(0xFF7B1FA2), text = "≥ 90% (Excellent)", count = above90, total = reports.size)
+                    PieChartLegendItem(color = Color(0xFF43A047), text = "80% - 89% (Good)", count = between80and90, total = reports.size)
+                    PieChartLegendItem(color = Color(0xFF1E88E5), text = "60% - 79% (Moderate)", count = between60and80, total = reports.size)
+                    PieChartLegendItem(color = Color(0xFFFB8C00), text = "40% - 59% (Average)", count = between40and60, total = reports.size)
+                    PieChartLegendItem(color = Color(0xFFE53935), text = "< 40% (Below 40%)", count = below40, total = reports.size)
                 }
             }
         }
@@ -730,26 +900,30 @@ fun DepartmentPerformanceGraph(reports: List<StudentReport>) {
 }
 
 @Composable
-private fun PieChartLegendItem(color: Color, text: String, count: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun PieChartLegendItem(color: Color, text: String, count: Int, total: Int) {
+    val pct = if (total > 0) (count * 100 / total) else 0
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(
             modifier = Modifier
-                .size(12.dp)
+                .size(10.dp)
                 .clip(androidx.compose.foundation.shape.CircleShape)
                 .background(color)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = text,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = count.toString(),
-            fontSize = 12.sp,
+            text = "$count ($pct%)",
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = color
         )
     }
 }

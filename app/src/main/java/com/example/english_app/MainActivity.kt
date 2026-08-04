@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val webClientId = "331963078820-iiji6rt1dhi8d2i84komd88483g3cqqh.apps.googleusercontent.com"
+        val webClientId = "601582889258-bugbjcask3vh9igir6k089jcl1cg2v4s.apps.googleusercontent.com"
 
         // Google Sign-In setup — request idToken so we can sign into Firebase Auth
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -154,11 +154,13 @@ class MainActivity : ComponentActivity() {
                 
                 val isLoggedIn = googleAccountInfo != null || firebaseUser != null
 
-                // Load user profile when logged in
-                LaunchedEffect(isLoggedIn) {
+                // Load user profile and sync cross-provider progress when logged in
+                LaunchedEffect(isLoggedIn, firebaseUser) {
                     if (isLoggedIn) {
-                        UserProgressRepository.loadUserProfile { profile ->
-                            userProfile = profile
+                        UserProgressRepository.syncAccountProgressByEmail {
+                            UserProgressRepository.loadUserProfile { profile ->
+                                userProfile = profile
+                            }
                         }
                     }
                 }
@@ -172,6 +174,13 @@ class MainActivity : ComponentActivity() {
                         googleAccountInfoState.value = null // Reset
                     }
                 }
+
+                val rawUserName = userProfile.name.takeIf { it.isNotBlank() }
+                    ?: googleAccountInfo?.displayName
+                    ?: firebaseUser?.displayName
+                    ?: firebaseUser?.email?.substringBefore("@")
+                    ?: "User"
+                val currentUserName = UserProgressRepository.formatDisplayName(rawUserName)
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -191,6 +200,9 @@ class MainActivity : ComponentActivity() {
                         ) {
                             LoginScreen(
                                 onLoginClick = { _, _, _ ->
+                                    UserProgressRepository.loadUserProfile { profile ->
+                                        userProfile = profile
+                                    }
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -222,7 +234,11 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally { it } }
                         ) {
                             SignUpScreen(
-                                onSignUpClick = { _, _, _, _ ->
+                                onSignUpClick = { name, _, _, _ ->
+                                    userProfile = userProfile.copy(name = name)
+                                    UserProgressRepository.loadUserProfile { profile ->
+                                        userProfile = profile
+                                    }
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -299,7 +315,7 @@ class MainActivity : ComponentActivity() {
                                 onAdminPanel = { navController.navigate("adminPanel") },
                                 darkTheme = darkTheme,
                                 onToggleTheme = { darkTheme = !darkTheme },
-                                userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
+                                userName = currentUserName,
                                 userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
                                 isLoggedIn = isLoggedIn,
                                 isAdmin = userProfile.role == "admin" || userProfile.role == "teacher" || 
@@ -314,8 +330,11 @@ class MainActivity : ComponentActivity() {
                             popEnterTransition = { slideInHorizontally { -it } },
                             popExitTransition = { slideOutHorizontally { it } }
                         ) {
+                            val isTeacherOrAdmin = userProfile.role == "admin" || userProfile.role == "teacher" || 
+                                                  (googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: "").lowercase().contains("kavipriya") ||
+                                                  firebaseUser?.email?.lowercase()?.contains("kavipriya") == true
                             DashboardScreen(
-                                userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
+                                userName = currentUserName,
                                 userEmail = googleAccountInfo?.email ?: firebaseUser?.email ?: "user@example.com",
                                 userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
                                 onNavigateToHome = {
@@ -330,7 +349,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onBack = { navController.popBackStack() },
                                 onSettings = { navController.navigate("settings") },
-                                onContact = { navController.navigate("contact") }
+                                onContact = { navController.navigate("contact") },
+                                isAdmin = isTeacherOrAdmin,
+                                onAdminPanel = { navController.navigate("adminPanel") }
                             )
                         }
                         composable(
@@ -348,7 +369,7 @@ class MainActivity : ComponentActivity() {
                                 onAnimationSettingsChange = { newSettings ->
                                     animationSettings = newSettings
                                 },
-                                userName = googleAccountInfo?.displayName ?: firebaseUser?.displayName ?: firebaseUser?.email?.substringBefore("@") ?: "User",
+                                userName = currentUserName,
                                 userEmail = googleAccountInfo?.email ?: firebaseUser?.email ?: "",
                                 userPhotoUrl = googleAccountInfo?.photoUrl?.toString() ?: firebaseUser?.photoUrl?.toString(),
                                 onSignOut = {
@@ -440,7 +461,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         var googleAccountInfoState = mutableStateOf<GoogleSignInAccount?>(null)
-        private const val ALLOWED_EMAIL_DOMAIN = "" // Temporarily empty for testing, was "@srcas.ac.in"
+        private const val ALLOWED_EMAIL_DOMAIN = "@srcas.ac.in"
     }
 }
 

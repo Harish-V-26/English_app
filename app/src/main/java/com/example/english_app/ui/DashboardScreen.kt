@@ -55,10 +55,27 @@ fun DashboardScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit,
     onSettings: () -> Unit,
-    onContact: () -> Unit
+    onContact: () -> Unit,
+    isAdmin: Boolean = false,
+    onAdminPanel: () -> Unit = {}
 ) {
     var stats by remember { mutableStateOf(DashboardStats()) }
     var detailedResults by remember { mutableStateOf<List<DetailedQuizResult>>(emptyList()) }
+    var profile by remember { mutableStateOf<com.example.english_app.data.UserProfile?>(null) }
+
+    LaunchedEffect(Unit) {
+        UserProgressRepository.syncAccountProgressByEmail {
+            UserProgressRepository.loadUserProfile { loadedProfile ->
+                profile = loadedProfile
+            }
+            UserProgressRepository.loadDetailedQuizResults { results ->
+                detailedResults = results
+            }
+            UserProgressRepository.loadDashboardStats { loadedStats ->
+                stats = loadedStats
+            }
+        }
+    }
 
     DisposableEffect(Unit) {
         val listener = UserProgressRepository.observeDashboardStats { loaded ->
@@ -66,12 +83,6 @@ fun DashboardScreen(
         }
         onDispose {
             listener.remove()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        UserProgressRepository.loadDetailedQuizResults { results ->
-            detailedResults = results
         }
     }
 
@@ -87,11 +98,25 @@ fun DashboardScreen(
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
                 Text("Menu", modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold)
+                if (isAdmin) {
+                    NavigationDrawerItem(
+                        label = { Text("Admin Panel") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            onAdminPanel()
+                        },
+                        icon = { Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin Panel") }
+                    )
+                }
                 NavigationDrawerItem(
                     label = { Text("Settings") },
                     selected = false,
@@ -116,13 +141,22 @@ fun DashboardScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Dashboard", color = Color.White) },
+                    title = { Text("Dashboard", color = Color.White, style = MaterialTheme.typography.titleLarge) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
                         }
                     },
                     actions = {
+                        if (isAdmin) {
+                            IconButton(onClick = onAdminPanel) {
+                                Icon(
+                                    imageVector = Icons.Default.AdminPanelSettings,
+                                    contentDescription = "Admin Panel",
+                                    tint = Color.White
+                                )
+                            }
+                        }
                         IconButton(onClick = onNavigateToHome) {
                             Icon(
                                 imageVector = Icons.Default.Home,
@@ -142,7 +176,8 @@ fun DashboardScreen(
                         containerColor = VibrantGreen
                     )
                 )
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         ) { paddingValues ->
             if (isTestActive) {
                 Box(
@@ -161,41 +196,51 @@ fun DashboardScreen(
                     )
                 }
             } else {
-                LazyColumn(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // User Profile Section
-                    item {
-                        UserProfileSection(userName, userEmail, userPhotoUrl)
-                    }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // User Profile Section
+                        item {
+                            val rawName = profile?.name?.takeIf { it.isNotBlank() } ?: userName
+                            val resolvedName = UserProgressRepository.formatDisplayName(rawName)
+                            val resolvedEmail = profile?.email?.takeIf { it.isNotBlank() } ?: userEmail
+                            UserProfileSection(resolvedName, resolvedEmail, userPhotoUrl)
+                        }
 
-                    // Progress Stats
-                    item {
-                        ProgressStats(stats)
-                    }
+                        // Progress Stats
+                        item {
+                            ProgressStats(stats)
+                        }
 
-                    // Today's Challenge
-                    item {
-                        TodaysChallenge(floatingOffset, stats)
-                    }
+                        // Today's Challenge
+                        item {
+                            TodaysChallenge(floatingOffset, stats)
+                        }
 
-                    // Achievement Badges
-                    item {
-                        AchievementBadges(stats)
-                    }
+                        // Achievement Badges
+                        item {
+                            AchievementBadges(stats)
+                        }
 
-                    // Recent Quiz Activity
-                    item {
-                        RecentQuizActivity(stats)
-                    }
+                        // Recent Quiz Activity
+                        item {
+                            RecentQuizActivity(stats)
+                        }
 
-                    // Test Analyzer
-                    item {
-                        TestAnalyzerSection(detailedResults)
+                        // Test Analyzer
+                        item {
+                            TestAnalyzerSection(
+                                results = detailedResults
+                            )
+                        }
                     }
                 }
             }
@@ -682,15 +727,24 @@ fun ProgressPieChart(progress: Float, color: Color, label: String) {
 }
 
 @Composable
-fun TestAnalyzerSection(results: List<DetailedQuizResult>) {
+fun TestAnalyzerSection(
+    results: List<DetailedQuizResult>
+) {
     if (results.isEmpty()) return
     Column {
-        Text(
-            text = "🔬 Test Analyzer",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "🔬 Test Analyzer",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
         results.forEach { result ->
             TestAnalyzerItem(result)
             Spacer(modifier = Modifier.height(8.dp))

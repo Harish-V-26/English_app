@@ -334,6 +334,15 @@ fun HomeScreen(
                         }
                     },
                     actions = {
+                        if (isAdmin) {
+                            IconButton(onClick = onAdminPanel) {
+                                Icon(
+                                    imageVector = Icons.Default.AdminPanelSettings,
+                                    contentDescription = "Admin Panel",
+                                    tint = if (darkTheme) MaterialTheme.colorScheme.onSurface else Color.White
+                                )
+                            }
+                        }
                         IconButton(onClick = onDashboard) {
                             Icon(Icons.Default.Dashboard, contentDescription = "Dashboard", tint = if (darkTheme) MaterialTheme.colorScheme.onSurface else Color.White)
                         }
