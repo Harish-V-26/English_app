@@ -129,6 +129,8 @@ fun AdminPanelScreen(
     var isLoading by remember { mutableStateOf(false) }
     var expandedDropdown by remember { mutableStateOf(false) }
     
+    var showClearConfirmDialog by remember { mutableStateOf(false) }
+
     val availableCategories = remember(reports) {
         reports.flatMap { it.testResults }.map { it.categoryTitle }.distinct().sorted()
     }
@@ -199,8 +201,6 @@ fun AdminPanelScreen(
         }
     }
 
-    var showClearConfirmDialog by remember { mutableStateOf(false) }
-
     if (showClearConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showClearConfirmDialog = false },
@@ -248,7 +248,6 @@ fun AdminPanelScreen(
             }
         )
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -300,6 +299,17 @@ fun AdminPanelScreen(
                             Icon(
                                 imageVector = Icons.Default.Download,
                                 contentDescription = "Download Report",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                    if (filteredReports.any { it.testResults.isNotEmpty() }) {
+                        IconButton(onClick = {
+                            showClearDeptDialog = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = "Clear Department Test History",
                                 tint = Color.White
                             )
                         }
@@ -555,7 +565,7 @@ fun AdminPanelScreen(
             // Student rows
             if (!isLoading) {
                 items(filteredReports) { report ->
-                    StudentReportRow(report)
+                    StudentReportRow(report = report)
                 }
             }
 
@@ -637,7 +647,9 @@ fun AdminStatCard(
 }
 
 @Composable
-fun StudentReportRow(report: StudentReport) {
+fun StudentReportRow(
+    report: StudentReport
+) {
     var expanded by remember { mutableStateOf(false) }
     val percent = if (report.totalQuestions > 0) (report.totalScore * 100 / report.totalQuestions) else 0
 
@@ -750,12 +762,28 @@ fun StudentReportRow(report: StudentReport) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            Text(
-                                text = "${test.score}/${test.total} ($testPercent%)",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "${test.score}/${test.total} ($testPercent%)",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (testPercent >= 70) Color(0xFF2E7D32) else if (testPercent >= 40) Color(0xFFF57F17) else Color(0xFFC62828)
+                                )
+                                IconButton(
+                                    onClick = { onDeleteTest(report, test) },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete Test",
+                                        tint = Color(0xFFD32F2F).copy(alpha = 0.7f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

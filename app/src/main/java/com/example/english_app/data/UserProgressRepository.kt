@@ -25,24 +25,19 @@ object UserProgressRepository {
     private val auth by lazy { FirebaseAuth.getInstance() }
 
     /**
-     * Returns the current user's UID. If no user is signed in (guest),
-     * signs in anonymously so progress can still be saved.
+     * Returns the current user's UID. Returns null if no user is signed in.
      */
     private fun currentUid(): String? = auth.currentUser?.uid
 
     /**
-     * Ensures there is a signed-in Firebase user (anonymous if needed),
-     * then runs [block] with that UID.
+     * Runs [block] with the current signed-in user's UID if available.
      */
     private fun withUid(block: (uid: String) -> Unit) {
         val uid = auth.currentUser?.uid
         if (uid != null) {
             block(uid)
         } else {
-            auth.signInAnonymously()
-                .addOnSuccessListener { result ->
-                    result.user?.uid?.let { block(it) }
-                }
+            android.util.Log.w("UserProgressRepository", "Operation skipped: No signed-in user found.")
         }
     }
 
@@ -890,6 +885,7 @@ object UserProgressRepository {
                                 pending--
                                 if (pending <= 0) onComplete(overallSuccess)
                             }
+                            }
                         }.addOnFailureListener {
                             overallSuccess = false
                             pending--
@@ -956,6 +952,132 @@ object UserProgressRepository {
             }
         }.addOnFailureListener {
             onComplete(false)
+        }
+    }
+
+    /**
+     * Completely clears a student's test history:
+     * 1. Deletes all documents in subcollection `users/{uid}/quizResults`
+     * 2. Deletes the `testResults` array in the main user document `users/{uid}`
+     */
+    fun clearStudentTestHistory(uid: String, onResult: (Boolean, String?) -> Unit) {
+        if (uid.isBlank()) {
+            onResult(false, "Invalid student UID")
+            return
+        }
+        val userDocRef = db.collection("users").document(uid)
+        val quizColRef = userDocRef.collection("quizResults")
+
+        quizColRef.get().addOnSuccessListener { snapshot ->
+            val batch = db.batch()
+            for (doc in snapshot.documents) {
+                batch.delete(doc.reference)
+            }
+            // Clear testResults field on user doc
+            batch.update(userDocRef, "testResults", FieldValue.delete())
+
+            batch.commit()
+                .addOnSuccessListener {
+                    android.util.Log.d("AdminPanel", "✅ Successfully cleared test history for uid=$uid")
+                    onResult(true, null)
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("AdminPanel", "❌ Failed to commit batch clear for uid=$uid: ${e.message}")
+                    // Fallback: try setting empty array
+                    userDocRef.set(mapOf("testResults" to emptyList<Any>()), com.google.firebase.firestore.SetOptions.merge())
+                        .addOnSuccessListener { onResult(true, null) }
+                        .addOnFailureListener { err -> onResult(false, err.message) }
+                }
+        }.addOnFailureListener { e ->
+            // If fetching subcollection fails, at least clear the user doc field
+            userDocRef.update("testResults", FieldValue.delete())
+                .addOnSuccessListener { onResult(true, null) }
+                .addOnFailureListener { onResult(false, e.message) }
+        }
+    }
+
+    /**
+     * Completely clears test history for all students in a given department.
+     */
+    fun clearDepartmentTestHistory(department: String, onResult: (Boolean, String?) -> Unit) {
+        if (department.isBlank()) {
+            onResult(false, "Invalid department")
+            return
+        }
+        db.collection("users")
+            .whereEqualTo("department", department)
+            .get()
+            .addOnSuccessListener { allDocs ->
+                val studentDocs = allDocs.filter { it.getString("role") == "student" }
+                if (studentDocs.isEmpty()) {
+                    onResult(true, null)
+                    return@addOnSuccessListener
+                }
+
+                var remaining = studentDocs.size
+                var hasError = false
+                var errorMsg: String? = null
+
+                for (doc in studentDocs) {
+                    val uid = doc.getString("uid") ?: doc.id
+                    clearStudentTestHistory(uid) { success, msg ->
+                        if (!success) {
+                            hasError = true
+                            errorMsg = msg
+                        }
+                        remaining--
+                        if (remaining <= 0) {
+                            if (hasError) {
+                                onResult(false, errorMsg)
+                            } else {
+                                onResult(true, null)
+                            }
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                onResult(false, e.message)
+            }
+    }
+
+    /**
+     * Deletes a single test result attempt for a student.
+     */
+    fun deleteSingleTestResult(
+        uid: String,
+        testDocId: String,
+        timestamp: Long,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        if (uid.isBlank()) {
+            onResult(false, "Invalid student UID")
+            return
+        }
+        val userDocRef = db.collection("users").document(uid)
+
+        // Remove from subcollection if ID available
+        if (testDocId.isNotBlank()) {
+            userDocRef.collection("quizResults").document(testDocId).delete()
+        }
+
+        // Also remove matching element from userDoc.testResults
+        userDocRef.get().addOnSuccessListener { userDoc ->
+            val rawTests = userDoc.get("testResults") as? List<*> ?: emptyList<Any>()
+            val updatedTests = rawTests.filterNot { item ->
+                val map = item as? Map<*, *> ?: return@filterNot false
+                val ts = (map["timestamp"] as? Number)?.toLong() ?: 0L
+                ts == timestamp
+            }
+            userDocRef.update("testResults", updatedTests)
+                .addOnSuccessListener {
+                    onResult(true, null)
+                }
+                .addOnFailureListener {
+                    onResult(true, null)
+                }
+        }.addOnFailureListener {
+            onResult(true, null)
         }
     }
 
@@ -1263,14 +1385,16 @@ data class QuizAnswerDetail(
 )
 
 data class DetailedQuizResult(
-    val categoryTitle: String,
-    val score: Int,
-    val total: Int,
-    val timestamp: Long,
+    val id: String = "",
+    val categoryTitle: String = "",
+    val score: Int = 0,
+    val total: Int = 0,
+    val timestamp: Long = 0L,
     val answers: List<QuizAnswerDetail> = emptyList()
 )
 
 data class StudentReport(
+    val uid: String = "",
     val name: String = "",
     val rollNo: String = "",
     val department: String = "",
@@ -1280,6 +1404,7 @@ data class StudentReport(
 )
 
 data class StudentTestResult(
+    val id: String = "",
     val categoryTitle: String = "",
     val score: Int = 0,
     val total: Int = 0,

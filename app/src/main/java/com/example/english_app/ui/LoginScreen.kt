@@ -68,6 +68,9 @@ import com.google.firebase.auth.AuthResult
 import com.example.english_app.R
 import androidx.compose.ui.layout.ContentScale
 
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
+
 private const val ALLOWED_DOMAIN = "@srcas.ac.in"
 
 @Composable
@@ -78,12 +81,17 @@ fun LoginScreen(
     onGoogleLogin: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    var email by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val authPrefs = remember { context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE) }
+    val savedEmail = remember { authPrefs.getString("saved_email", "") ?: "" }
+    val savedRememberMe = remember { authPrefs.getBoolean("remember_me", false) }
+
+    var email by remember { mutableStateOf(savedEmail) }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(savedRememberMe || savedEmail.isNotEmpty()) }
     var isTeacher by remember { mutableStateOf(false) }
     var secretKey by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
