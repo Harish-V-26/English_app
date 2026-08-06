@@ -487,7 +487,7 @@ fun HomeScreen(
                         // Section 2 · LEARNING WITH PHOTOS
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Learning with Photos", isLocked = true)
+                            SectionHeading(title = "Learning with Photos", isLocked = false)
                         }
                         item {
                             // Photos categories: doc1..doc7
@@ -519,7 +519,7 @@ fun HomeScreen(
                                     title = title,
                                     icon = icon,
                                     iconTint = tint,
-                                    isLocked = true,
+                                    isLocked = false,
                                     onClick = {
                                         if (actualCat != null) onCategorySelected(actualCat)
                                     }
@@ -531,7 +531,7 @@ fun HomeScreen(
                         // Section 3 · LEARNING WITH VIDEOS
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Learning With GIF", isLocked = true)
+                            SectionHeading(title = "Learning With GIF", isLocked = false)
                         }
                         item {
                             val videosCategories = listOf(
@@ -556,7 +556,7 @@ fun HomeScreen(
                                     title = title,
                                     icon = icon,
                                     iconTint = tint,
-                                    isLocked = true,
+                                    isLocked = false,
                                     onClick = {
                                         if (actualCat != null) onCategorySelected(actualCat)
                                     }
@@ -568,7 +568,7 @@ fun HomeScreen(
                         // Section 4 · PODCAST
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Boardcast", isLocked = true)
+                            SectionHeading(title = "Boardcast", isLocked = false)
                         }
                         item {
                             val podcastCategories = listOf(
@@ -591,7 +591,7 @@ fun HomeScreen(
                                     title = title,
                                     icon = icon,
                                     iconTint = tint,
-                                    isLocked = true,
+                                    isLocked = false,
                                     onClick = {
                                         if (actualCat != null) onCategorySelected(actualCat)
                                     }
