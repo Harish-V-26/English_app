@@ -145,7 +145,10 @@ val docWords13 = listOf(
     Word("The Clever Fox",         "", "Story · Video 4", "https://youtu.be/VkJ0IcJ3EpA?si=mOG1eDn2goa8t2_G", "VkJ0IcJ3EpA"),
     Word("The Greedy Dog",         "", "Story · Video 5", "https://youtu.be/Wygb93WOHAo?si=hnb5wXVM6x1GE_4r", "Wygb93WOHAo"),
     Word("The Thirsty Crow",       "", "Story · Video 6", "https://youtu.be/ieFWfWtKmTc?si=eUFdk_gC2n4kBi1K", "ieFWfWtKmTc"),
-    Word("The Golden Goose",       "", "Story · Video 7", "https://youtu.be/TbmSCdn_iUo?si=CaTIpweWQ5Bwi5_G", "TbmSCdn_iUo")
+    Word("The Golden Goose",       "", "Story · Video 7", "https://youtu.be/TbmSCdn_iUo?si=CaTIpweWQ5Bwi5_G", "TbmSCdn_iUo"),
+    Word("A Life-Changing Motivational Story | The Courage to Walk Away | Learn English with Stories", "", "Story · Video 8",  "https://youtu.be/JrvJuwIbwvc?si=IJKCrm17HcFc3wqZ",  "JrvJuwIbwvc"),
+    Word("The Power of Positive Thinking | A Story That Will Change Your Mindset | Motivational Story",  "", "Story · Video 9",  "https://youtu.be/NBQKIS2CRlc?si=QMWVbbkRQgafZ4am",  "NBQKIS2CRlc"),
+    Word("Learn English through stories || The red Book English story || Improve your English || Graded reader", "", "Story · Video 10", "https://youtu.be/W3KyG2xMX0Y?si=LLOtaJGJqghPCXcA", "W3KyG2xMX0Y")
 )
 
 // ---------- Document 14: Podcast Videos ----------
