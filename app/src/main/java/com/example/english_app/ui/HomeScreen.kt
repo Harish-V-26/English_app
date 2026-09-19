@@ -484,10 +484,10 @@ fun HomeScreen(
                         }
 
                         // ══════════════════════════════════════════
-                        // Section 2 · LEARNING WITH PHOTOS
+                        // Section 2 · LEARNING WITH PICTURES
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Learning with Photos", isLocked = false)
+                            SectionHeading(title = "Learning with Pictures", isLocked = false)
                         }
                         item {
                             // Photos categories: doc1..doc7
@@ -565,10 +565,10 @@ fun HomeScreen(
                         }
 
                         // ══════════════════════════════════════════
-                        // Section 4 · PODCAST
+                        // Section 4 · LEARNING WITH BROADCAST
                         // ══════════════════════════════════════════
                         item {
-                            SectionHeading(title = "Boardcast", isLocked = false)
+                            SectionHeading(title = "Learning with Broadcast", isLocked = false)
                         }
                         item {
                             val podcastCategories = listOf(
