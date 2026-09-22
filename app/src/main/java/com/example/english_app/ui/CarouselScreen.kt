@@ -598,6 +598,11 @@ fun WordCard(
 // Helper to get drawable resource id from name
 @Composable
 fun getImageResId(imageName: String): Int {
+    if (imageName.isBlank()) return R.drawable.ic_placeholder_word
+    val context = LocalContext.current
+    val dynamicId = context.resources.getIdentifier(imageName, "drawable", context.packageName)
+    if (dynamicId != 0) return dynamicId
+
     return when (imageName) {
         "vt_bat" -> R.drawable.vt_bat
         "vt_bank" -> R.drawable.vt_bank
